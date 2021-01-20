@@ -5,40 +5,72 @@ import os
 import sqlite3
 import urwid
 
-rows = []
+UPDATE_INTERVAL = 60
+news_items = []
 
-current_item = 0
 
-def menu():
-    global rows
-    
-    conn = sqlite3.connect('/home/mylk/.local/share/liferea/liferea.db')
-    c = conn.cursor()
-    rows = c.execute("SELECT datetime(date, 'unixepoch') AS date, n.title AS source, i.item_id, i.title, i.source FROM items i INNER JOIN node n ON n.node_id = i.node_id AND i.read = 0 AND i.parent_item_id = 0 ORDER BY date ASC")
+class Database():
+    DB_PATH = '/home/mylk/.local/share/liferea/liferea.db'
+    connection = None
+
+    def get_connection(self):
+        if not self.connection:
+            self.connection = sqlite3.connect(self.DB_PATH)
+
+        return self.connection
+
+    def find_unread_news(self):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        return cursor.execute('''
+            SELECT datetime(date, 'unixepoch') AS date,
+            n.title AS source,
+            i.item_id,
+            i.title,
+            i.source AS url
+            FROM items i
+            INNER JOIN node n ON n.node_id = i.node_id
+            AND i.read = 0
+            AND i.parent_item_id = 0
+            ORDER BY date ASC
+        ''')
+
+    def close_connection(self):
+        self.get_connection().close()
+
+    def set_item_read(self, item_id):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+        cursor.execute('UPDATE items SET read = 1 WHERE item_id = ?', (item_id,))
+        connection.commit()
+        self.close_connection()
+
+
+def generate_news_list():
+    db = Database()
+    rows = db.find_unread_news().fetchall()
+    db.close_connection()
+
+    global news_items
+    news_items = rows
 
     txt = urwid.Text(datetime.now().strftime('%c'))
-    body = [txt, urwid.Divider()]
+    news_list = [txt, urwid.Divider()]
 
     for row in rows:
-        button = urwid.Button('{:<210} {}'.format(row[3], row[0]))
+        button = urwid.Button('{:<90} {}'.format(row[3], row[0]))
         urwid.connect_signal(button, 'click', item_chosen, row)
-        body.append(urwid.AttrMap(button, None, focus_map='reversed'))
-    
-    conn.close()
-    
-    return urwid.SimpleListWalker(body)
+        news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
+
+    return urwid.SimpleListWalker(news_list)
 
 
 def item_chosen(button, row):
-    global current_item
+    Database().set_item_read(row[2])
 
-    conn = sqlite3.connect('/home/mylk/.local/share/liferea/liferea.db')
-    c = conn.cursor()
-    c.execute('update items set read = 1 where item_id = ?', (row[2],))
-    conn.commit()
-    conn.close()
-    
-    refresh(None, None)
+    index_with_focus = news_list.get_focus()[1]
+    update_news_list(loop)
 
     os.system('/usr/bin/firefox --new-tab {}'.format(row[4]))
 
@@ -47,50 +79,52 @@ def exit_program(button):
     raise urwid.ExitMainLoop()
 
 
-def exit_on_q(key):
-    if key in ('q', 'Q'):
+def handle_input(key):
+    global news_items
+
+    if key in ['q', 'Q']:
         raise urwid.ExitMainLoop()
+    elif key == 'm':
+        index_with_focus = news_list.get_focus()[1]
+
+        focused_item = news_items[int(index_with_focus) - 2]
+        Database().set_item_read(focused_item[2])
+        update_news_list(loop)
 
 
-def refresh(_loop, _data):
-    menuz.clear()
+def update_news_list(loop = None, data = None):
+    index_with_focus = news_list.get_focus()[1]
+
+    news_list.clear()
 
     txt = urwid.Text(datetime.now().strftime('%c'))
-    
-    menuz.append(txt)
-    menuz.append(urwid.Divider())
+    news_list.append(txt)
+    news_list.append(urwid.Divider())
 
-    global rows
-    conn = sqlite3.connect('/home/mylk/.local/share/liferea/liferea.db')
-    c = conn.cursor()
-    rows = c.execute("SELECT datetime(date, 'unixepoch') AS date, n.title AS source, i.item_id, i.title, i.source FROM items i INNER JOIN node n ON n.node_id = i.node_id AND i.read = 0 AND i.parent_item_id = 0 ORDER BY date ASC")
+    db = Database()
+    rows = db.find_unread_news().fetchall()
+    db.close_connection()
+
+    global news_items
+    news_items = rows
 
     for row in rows:
-        button = urwid.Button('{:<210} {}'.format(row[3], row[0]))
+        button = urwid.Button('{:<90} {}'.format(row[3], row[0]))
         urwid.connect_signal(button, 'click', item_chosen, row)
-        menuz.append(urwid.AttrMap(button, None, focus_map='reversed'))
+        news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
-    conn.close()
+    # @TODO handle case the item is the first and only
+    if len(news_list) > index_with_focus:
+        news_list.set_focus(index_with_focus)
+    else:
+        news_list.set_focus((index_with_focus - 1))
 
-    loop.set_alarm_in(60, refresh)
-
-def wtf(key, _loop):
-    global current_item
-    global menuz
-
-    if 'up' in key:
-        if current_item > 0:
-            current_item -= 1
-    elif 'down' in key:
-        if current_item < (len(menuz) - 3):
-            current_item += 1
-
-    return key
+    loop.set_alarm_in(UPDATE_INTERVAL, update_news_list)
 
 
-menuz = menu()
+news_list = generate_news_list()
 
-main = urwid.Padding(urwid.ListBox(menuz), left=2, right=2)
+main = urwid.Padding(urwid.ListBox(news_list), left=2, right=2)
 top = urwid.Overlay(
     main,
     urwid.SolidFill(),
@@ -102,7 +136,7 @@ top = urwid.Overlay(
     min_height=5
 )
 
-loop = urwid.MainLoop(top, palette=[('reversed', 'standout', '')], unhandled_input=exit_on_q, input_filter=wtf)
-loop.set_alarm_in(60, refresh)
+loop = urwid.MainLoop(top, palette=[('reversed', 'standout', '')], unhandled_input=handle_input)
+loop.set_alarm_in(UPDATE_INTERVAL, update_news_list)
 loop.run()
 
