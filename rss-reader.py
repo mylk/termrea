@@ -59,7 +59,7 @@ def generate_news_list():
     news_list = [txt, urwid.Divider()]
 
     for row in rows:
-        button = urwid.Button('{:<90} {}'.format(row[3], row[0]))
+        button = urwid.Button('{:<26} {:<103} {}'.format(row[1], row[3], row[0]))
         urwid.connect_signal(button, 'click', item_chosen, row)
         news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
@@ -109,7 +109,7 @@ def update_news_list(loop = None, data = None):
     news_items = rows
 
     for row in rows:
-        button = urwid.Button('{:<90} {}'.format(row[3], row[0]))
+        button = urwid.Button('{:<26} {:<103} {}'.format(row[1], row[3], row[0]))
         urwid.connect_signal(button, 'click', item_chosen, row)
         news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
