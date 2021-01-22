@@ -72,6 +72,7 @@ def item_chosen(button, row):
     index_with_focus = news_list.get_focus()[1]
     update_news_list(loop)
 
+    # @TODO: blocks execution if firefox is closed
     os.system('/usr/bin/firefox --new-tab {}'.format(row[4]))
 
 
@@ -113,13 +114,17 @@ def update_news_list(loop = None, data = None):
         urwid.connect_signal(button, 'click', item_chosen, row)
         news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
-    # @TODO handle case the item is the first and only
+    # @TODO: handle case the item is the first and only
     if len(news_list) > index_with_focus:
         news_list.set_focus(index_with_focus)
     else:
         news_list.set_focus((index_with_focus - 1))
 
-    loop.set_alarm_in(UPDATE_INTERVAL, update_news_list)
+
+def schedule_and_update_news_list(loop = None, data = None):
+    update_news_list(loop)
+
+    loop.set_alarm_in(UPDATE_INTERVAL, schedule_and_update_news_list)
 
 
 news_list = generate_news_list()
@@ -137,6 +142,6 @@ top = urwid.Overlay(
 )
 
 loop = urwid.MainLoop(top, palette=[('reversed', 'standout', '')], unhandled_input=handle_input)
-loop.set_alarm_in(UPDATE_INTERVAL, update_news_list)
+loop.set_alarm_in(UPDATE_INTERVAL, schedule_and_update_news_list)
 loop.run()
 
