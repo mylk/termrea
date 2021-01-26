@@ -85,13 +85,18 @@ def handle_input(key):
 
     if key in ['q', 'Q']:
         raise urwid.ExitMainLoop()
+    elif key == 'h':
+        # @TODO: show help with available keys
+        pass
     elif key == 'm':
         index_with_focus = news_list.get_focus()[1]
 
         focused_item = news_items[int(index_with_focus) - 2]
         Database().set_item_read(focused_item[2])
         update_news_list(loop)
-
+    elif key == 'u':
+        index_with_focus = news_list.get_focus()[1]
+        update_news_list(loop)
 
 def update_news_list(loop = None, data = None):
     index_with_focus = news_list.get_focus()[1]
@@ -129,7 +134,7 @@ def schedule_and_update_news_list(loop = None, data = None):
 
 news_list = generate_news_list()
 
-main = urwid.Padding(urwid.ListBox(news_list), left=2, right=2)
+main = urwid.Padding(urwid.ListBox(news_list), left=0, right=0)
 top = urwid.Overlay(
     main,
     urwid.SolidFill(),
