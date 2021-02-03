@@ -6,7 +6,6 @@ import sqlite3
 import urwid
 
 UPDATE_INTERVAL = 60
-news_items = []
 
 
 class Database():
@@ -47,30 +46,50 @@ class Database():
         self.close_connection()
 
 
-def generate_news_list():
+class UnreadButton(urwid.Button):
+    button_left = urwid.Text('.')
+    button_right = urwid.Text('')
+
+
+def generate_interface(loop):
     db = Database()
     rows = db.find_unread_news().fetchall()
     db.close_connection()
 
     global news_items
+    global news_list
+    global index_with_focus
+    index_with_focus = news_list.get_focus()[1] if news_list.get_focus()[1] else 0
     news_items = rows
 
-    txt = urwid.Text(datetime.now().strftime('%c'))
-    news_list = [txt, urwid.Divider()]
+    last_update_txt = urwid.Text(datetime.now().strftime('%c'))
 
+    news_list = urwid.SimpleListWalker([])
     for row in rows:
-        button = urwid.Button('{:<26} {:<103} {}'.format(row[1], row[3], row[0]))
+        button = UnreadButton('{:<26} {:<103} {}'.format(row[1], row[3], row[0]))
         urwid.connect_signal(button, 'click', item_chosen, row)
         news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
-    return urwid.SimpleListWalker(news_list)
+    # @TODO: handle case the item is the first and only
+    if len(news_items) > index_with_focus:
+        news_list.set_focus(index_with_focus)
+    else:
+        news_list.set_focus((index_with_focus - 1))
+
+    elements_list = urwid.ListBox(news_list)
+    pile = urwid.Pile([last_update_txt, urwid.Divider(), (100, elements_list)])
+    widget = urwid.Filler(pile, valign='top')
+
+    loop.widget = widget
 
 
 def item_chosen(button, row):
+    global index_with_focus
+
     Database().set_item_read(row[2])
 
     index_with_focus = news_list.get_focus()[1]
-    update_news_list(loop)
+    generate_interface(loop)
 
     # @TODO: blocks execution if firefox is closed
     os.system('/usr/bin/firefox --new-tab {}'.format(row[4]))
@@ -82,6 +101,7 @@ def exit_program(button):
 
 def handle_input(key):
     global news_items
+    global index_with_focus
 
     if key in ['q', 'Q']:
         raise urwid.ExitMainLoop()
@@ -91,62 +111,29 @@ def handle_input(key):
     elif key == 'm':
         index_with_focus = news_list.get_focus()[1]
 
-        focused_item = news_items[int(index_with_focus) - 2]
+        focused_item = news_items[int(index_with_focus)]
         Database().set_item_read(focused_item[2])
-        update_news_list(loop)
+        generate_interface(loop)
     elif key == 'u':
         index_with_focus = news_list.get_focus()[1]
-        update_news_list(loop)
-
-def update_news_list(loop = None, data = None):
-    index_with_focus = news_list.get_focus()[1]
-
-    news_list.clear()
-
-    txt = urwid.Text(datetime.now().strftime('%c'))
-    news_list.append(txt)
-    news_list.append(urwid.Divider())
-
-    db = Database()
-    rows = db.find_unread_news().fetchall()
-    db.close_connection()
-
-    global news_items
-    news_items = rows
-
-    for row in rows:
-        button = urwid.Button('{:<26} {:<103} {}'.format(row[1], row[3], row[0]))
-        urwid.connect_signal(button, 'click', item_chosen, row)
-        news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
-
-    # @TODO: handle case the item is the first and only
-    if len(news_list) > index_with_focus:
-        news_list.set_focus(index_with_focus)
-    else:
-        news_list.set_focus((index_with_focus - 1))
+        generate_interface(loop)
 
 
-def schedule_and_update_news_list(loop = None, data = None):
-    update_news_list(loop)
+def schedule_and_generate_interface(loop = None, data = None):
+    generate_interface(loop)
 
-    loop.set_alarm_in(UPDATE_INTERVAL, schedule_and_update_news_list)
+    loop.set_alarm_in(UPDATE_INTERVAL, schedule_and_generate_interface)
 
 
-news_list = generate_news_list()
+news_items = []
+news_list = urwid.SimpleListWalker([])
 
-main = urwid.Padding(urwid.ListBox(news_list), left=0, right=0)
-top = urwid.Overlay(
-    main,
-    urwid.SolidFill(),
-    align='left',
-    width=('relative', 300),
-    valign='top',
-    height=('relative', 250),
-    min_width=20,
-    min_height=5
-)
+pile = urwid.Pile([])
+widget = urwid.Filler(pile, valign='top')
+loop = urwid.MainLoop(widget, palette=[('reversed', 'standout', '')], unhandled_input=handle_input)
+loop.set_alarm_in(UPDATE_INTERVAL, schedule_and_generate_interface)
 
-loop = urwid.MainLoop(top, palette=[('reversed', 'standout', '')], unhandled_input=handle_input)
-loop.set_alarm_in(UPDATE_INTERVAL, schedule_and_update_news_list)
+generate_interface(loop)
+
 loop.run()
 
