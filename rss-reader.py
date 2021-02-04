@@ -4,8 +4,31 @@ from datetime import datetime
 import os
 import sqlite3
 import urwid
+import xml.etree.ElementTree as xml
 
 UPDATE_INTERVAL = 60
+
+
+class Config():
+    CONFIG_PATH = '/home/mylk/.config/liferea/feedlist.opml'
+
+    def get_sources(self):
+        tree = xml.parse(self.CONFIG_PATH)
+        root = tree.getroot()
+
+        sources = {}
+        for outline in root.findall('./body/'):
+            sources[outline.attrib['id']] = {
+                'title': outline.attrib['title'],
+                'sources': {}
+            }
+
+            for source in outline.findall('./'):
+                if source.attrib['type'] in ['rss', 'atom']:
+                    sources[outline.attrib['id']]['sources'][source.attrib['id']] = {
+                        'title': source.attrib['title']
+                    }
+        return sources
 
 
 class Database():
@@ -46,12 +69,25 @@ class Database():
         self.close_connection()
 
 
+class ReadButton(urwid.Button):
+    button_left = urwid.Text('')
+    button_right = urwid.Text('')
+
+
 class UnreadButton(urwid.Button):
     button_left = urwid.Text('.')
     button_right = urwid.Text('')
 
 
 def generate_interface(loop):
+    config = Config()
+    sources = config.get_sources()
+    sources_list = urwid.SimpleListWalker([])
+    for source in sources:
+        button = ReadButton(sources[source]['title'])
+        urwid.connect_signal(button, 'click', source_chosen, source)
+        sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
+
     db = Database()
     rows = db.find_unread_news().fetchall()
     db.close_connection()
@@ -77,10 +113,19 @@ def generate_interface(loop):
         news_list.set_focus((index_with_focus - 1))
 
     elements_list = urwid.ListBox(news_list)
-    pile = urwid.Pile([last_update_txt, urwid.Divider(), (100, elements_list)])
+    
+    sources_list = urwid.ListBox(sources_list)
+    columns = urwid.Columns([(20, sources_list), (1, urwid.SolidFill(' ')), (200, elements_list)])
+    columns.set_focus(elements_list)
+    
+    pile = urwid.Pile([last_update_txt, urwid.Divider(), (221, columns)])
     widget = urwid.Filler(pile, valign='top')
 
     loop.widget = widget
+
+
+def source_chosen(button, row):
+    pass
 
 
 def item_chosen(button, row):
