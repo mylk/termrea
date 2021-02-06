@@ -50,13 +50,50 @@ class Database():
             n.title AS source,
             i.item_id,
             i.title,
-            i.source AS url
-            FROM items i
-            INNER JOIN node n ON n.node_id = i.node_id
+            i.source AS url,
+            i.read
+            FROM items AS i
+            INNER JOIN node AS n ON n.node_id = i.node_id
             AND i.read = 0
             AND i.parent_item_id = 0
             ORDER BY date ASC
         ''')
+
+    def get_node_unreads_count(self, node_id):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        return cursor.execute('''
+            SELECT COUNT(*)
+            FROM items AS i
+            INNER JOIN node AS n
+            ON i.node_id = n.node_id
+            AND i.read = 0
+            AND (
+                n.node_id = ?
+                OR n.parent_id = ?
+            )
+        ''', (node_id,))
+
+    def get_node_items(self, node_id):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        return cursor.execute('''
+            SELECT datetime(date, 'unixepoch') AS date,
+            n.title AS source,
+            i.item_id,
+            IFNULL(i.title, '') AS title,
+            i.source AS url,
+            i.read
+            FROM items AS i
+            INNER JOIN node AS n ON i.node_id = n.node_id
+            AND (
+                n.node_id = ?
+                OR n.parent_id = ?
+            )
+            ORDER BY date DESC
+        ''', (node_id, node_id))
 
     def close_connection(self):
         self.get_connection().close()
@@ -79,7 +116,7 @@ class UnreadButton(urwid.Button):
     button_right = urwid.Text('')
 
 
-def generate_interface(loop):
+def generate_interface(loop, rows):
     config = Config()
     sources = config.get_sources()
     sources_list = urwid.SimpleListWalker([])
@@ -87,10 +124,6 @@ def generate_interface(loop):
         button = ReadButton(sources[source]['title'])
         urwid.connect_signal(button, 'click', source_chosen, source)
         sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
-
-    db = Database()
-    rows = db.find_unread_news().fetchall()
-    db.close_connection()
 
     global news_items
     global news_list
@@ -102,7 +135,11 @@ def generate_interface(loop):
 
     news_list = urwid.SimpleListWalker([])
     for row in rows:
-        button = UnreadButton('{:<26} {:<103} {}'.format(row[1], row[3], row[0]))
+        if row[5] == 0:
+            button = UnreadButton('{:<26} {:<103} {}'.format(row[1], row[3], row[0]))
+        else:
+            button = ReadButton('{:<26} {:<103} {}'.format(row[1], row[3], row[0]))
+
         urwid.connect_signal(button, 'click', item_chosen, row)
         news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
@@ -124,17 +161,31 @@ def generate_interface(loop):
     loop.widget = widget
 
 
-def source_chosen(button, row):
-    pass
+def source_chosen(button, the_node_id):
+    global node_id
+    node_id = the_node_id
 
+    db = Database()
+    rows = db.get_node_items(the_node_id).fetchall()
+    db.close_connection()
+
+    generate_interface(loop, rows)
 
 def item_chosen(button, row):
     global index_with_focus
+    global node_id
+    
+    node_id = None
 
     Database().set_item_read(row[2])
 
     index_with_focus = news_list.get_focus()[1]
-    generate_interface(loop)
+
+    db = Database()
+    rows = db.find_unread_news().fetchall()
+    db.close_connection()
+
+    generate_interface(loop, rows)
 
     # @TODO: blocks execution if firefox is closed
     os.system('/usr/bin/firefox --new-tab {}'.format(row[4]))
@@ -147,7 +198,8 @@ def exit_program(button):
 def handle_input(key):
     global news_items
     global index_with_focus
-
+    global node_id
+    
     if key in ['q', 'Q']:
         raise urwid.ExitMainLoop()
     elif key == 'h':
@@ -158,18 +210,38 @@ def handle_input(key):
 
         focused_item = news_items[int(index_with_focus)]
         Database().set_item_read(focused_item[2])
-        generate_interface(loop)
+
+        if node_id:
+            db = Database()
+            rows = db.get_node_items(node_id).fetchall()
+            db.close_connection()
+        else:
+            db = Database()
+            rows = db.find_unread_news().fetchall()
+            db.close_connection()
+
+        generate_interface(loop, rows)
     elif key == 'u':
         index_with_focus = news_list.get_focus()[1]
-        generate_interface(loop)
+
+        db = Database()
+        rows = db.find_unread_news().fetchall()
+        db.close_connection()
+
+        generate_interface(loop, rows)
 
 
 def schedule_and_generate_interface(loop = None, data = None):
-    generate_interface(loop)
+    db = Database()
+    rows = db.find_unread_news().fetchall()
+    db.close_connection()
+
+    generate_interface(loop, rows)
 
     loop.set_alarm_in(UPDATE_INTERVAL, schedule_and_generate_interface)
 
 
+node_id = None
 news_items = []
 news_list = urwid.SimpleListWalker([])
 
@@ -178,7 +250,11 @@ widget = urwid.Filler(pile, valign='top')
 loop = urwid.MainLoop(widget, palette=[('reversed', 'standout', '')], unhandled_input=handle_input)
 loop.set_alarm_in(UPDATE_INTERVAL, schedule_and_generate_interface)
 
-generate_interface(loop)
+db = Database()
+rows = db.find_unread_news().fetchall()
+db.close_connection()
+
+generate_interface(loop, rows)
 
 loop.run()
 
