@@ -105,6 +105,13 @@ class Database():
         connection.commit()
         self.close_connection()
 
+    def set_item_unread(self, item_id):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+        cursor.execute('UPDATE items SET read = 0 WHERE item_id = ?', (item_id,))
+        connection.commit()
+        self.close_connection()
+
 
 class ReadButton(urwid.Button):
     button_left = urwid.Text('')
@@ -205,7 +212,7 @@ def handle_input(key):
     elif key == 'h':
         # @TODO: show help with available keys
         pass
-    elif key == 'm':
+    elif key == 'r':
         index_with_focus = news_list.get_focus()[1]
 
         focused_item = news_items[int(index_with_focus)]
@@ -222,6 +229,22 @@ def handle_input(key):
 
         generate_interface(loop, rows)
     elif key == 'u':
+        index_with_focus = news_list.get_focus()[1]
+
+        focused_item = news_items[int(index_with_focus)]
+        Database().set_item_unread(focused_item[2])
+
+        if node_id:
+            db = Database()
+            rows = db.get_node_items(node_id).fetchall()
+            db.close_connection()
+        else:
+            db = Database()
+            rows = db.find_unread_news().fetchall()
+            db.close_connection()
+
+        generate_interface(loop, rows)
+    elif key == 'f':
         index_with_focus = news_list.get_focus()[1]
 
         db = Database()
