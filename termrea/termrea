@@ -38,6 +38,7 @@ class Database():
     def get_connection(self):
         if not self.connection:
             self.connection = sqlite3.connect(self.DB_PATH)
+            self.connection.row_factory = sqlite3.Row
 
         return self.connection
 
@@ -142,10 +143,10 @@ def generate_interface(loop, rows):
 
     news_list = urwid.SimpleListWalker([])
     for row in rows:
-        if row[5] == 0:
-            button = UnreadButton('{:<26} {:<103} {}'.format(row[1], row[3], row[0]))
+        if not row['read']:
+            button = UnreadButton('{:<26} {:<103} {}'.format(row['source'], row['title'], row['date']))
         else:
-            button = ReadButton('{:<26} {:<103} {}'.format(row[1], row[3], row[0]))
+            button = ReadButton('{:<26} {:<103} {}'.format(row['source'], row['title'], row['date']))
 
         urwid.connect_signal(button, 'click', item_chosen, row)
         news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
@@ -184,7 +185,7 @@ def item_chosen(button, row):
     
     node_id = None
 
-    Database().set_item_read(row[2])
+    Database().set_item_read(row['item_id'])
 
     index_with_focus = news_list.get_focus()[1]
 
@@ -195,7 +196,7 @@ def item_chosen(button, row):
     generate_interface(loop, rows)
 
     # @TODO: blocks execution if firefox is closed
-    os.system('/usr/bin/firefox --new-tab {}'.format(row[4]))
+    os.system('/usr/bin/firefox --new-tab {}'.format(row['url']))
 
 
 def exit_program(button):
