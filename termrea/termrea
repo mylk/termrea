@@ -118,14 +118,14 @@ def handle_input(key):
         focused_item = news_items[int(index_with_focus)]
         DatabaseAdapter().set_item_read(focused_item[2])
 
+        db = DatabaseAdapter()
+
         if node_id:
-            db = DatabaseAdapter()
             rows = db.get_node_items(node_id).fetchall()
-            db.close_connection()
         else:
-            db = DatabaseAdapter()
             rows = db.find_unread_news().fetchall()
-            db.close_connection()
+
+        db.close_connection()
 
         generate_interface(loop, rows)
     elif key == 'u':
@@ -134,14 +134,14 @@ def handle_input(key):
         focused_item = news_items[int(index_with_focus)]
         DatabaseAdapter().set_item_unread(focused_item[2])
 
+        db = DatabaseAdapter()
+
         if node_id:
-            db = DatabaseAdapter()
             rows = db.get_node_items(node_id).fetchall()
-            db.close_connection()
         else:
-            db = DatabaseAdapter()
             rows = db.find_unread_news().fetchall()
-            db.close_connection()
+
+        db.close_connection()
 
         generate_interface(loop, rows)
     elif key == 'f':

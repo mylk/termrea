@@ -67,20 +67,19 @@ class DatabaseAdapter():
             ORDER BY date DESC
         ''', (node_id, node_id))
 
-    def close_connection(self):
-        self.get_connection().close()
+    def toggle_read_status(self, item_id, read_status):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+        cursor.execute('UPDATE items SET read = ? WHERE item_id = ?', (read_status, item_id))
+        connection.commit()
+        self.close_connection()
 
     def set_item_read(self, item_id):
-        connection = self.get_connection()
-        cursor = connection.cursor()
-        cursor.execute('UPDATE items SET read = 1 WHERE item_id = ?', (item_id,))
-        connection.commit()
-        self.close_connection()
+        self.toggle_read_status(item_id, 1)
 
     def set_item_unread(self, item_id):
-        connection = self.get_connection()
-        cursor = connection.cursor()
-        cursor.execute('UPDATE items SET read = 0 WHERE item_id = ?', (item_id,))
-        connection.commit()
-        self.close_connection()
+        self.toggle_read_status(item_id, 0)
+
+    def close_connection(self):
+        self.get_connection().close()
 
