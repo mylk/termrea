@@ -1,0 +1,86 @@
+import config
+import os
+import sqlite3
+
+
+class DatabaseAdapter():
+    connection = None
+
+    def get_connection(self):
+        if not self.connection:
+            self.connection = sqlite3.connect(os.path.expanduser(config.DB_PATH))
+            self.connection.row_factory = sqlite3.Row
+
+        return self.connection
+
+    def find_unread_news(self):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        return cursor.execute('''
+            SELECT datetime(date, 'unixepoch') AS date,
+            n.title AS source,
+            i.item_id,
+            i.title,
+            i.source AS url,
+            i.read
+            FROM items AS i
+            INNER JOIN node AS n ON n.node_id = i.node_id
+            AND i.read = 0
+            AND i.parent_item_id = 0
+            ORDER BY date ASC
+        ''')
+
+    def get_node_unreads_count(self, node_id):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        return cursor.execute('''
+            SELECT COUNT(*)
+            FROM items AS i
+            INNER JOIN node AS n
+            ON i.node_id = n.node_id
+            AND i.read = 0
+            AND (
+                n.node_id = ?
+                OR n.parent_id = ?
+            )
+        ''', (node_id,))
+
+    def get_node_items(self, node_id):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        return cursor.execute('''
+            SELECT datetime(date, 'unixepoch') AS date,
+            n.title AS source,
+            i.item_id,
+            IFNULL(i.title, '') AS title,
+            i.source AS url,
+            i.read
+            FROM items AS i
+            INNER JOIN node AS n ON i.node_id = n.node_id
+            AND (
+                n.node_id = ?
+                OR n.parent_id = ?
+            )
+            ORDER BY date DESC
+        ''', (node_id, node_id))
+
+    def close_connection(self):
+        self.get_connection().close()
+
+    def set_item_read(self, item_id):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+        cursor.execute('UPDATE items SET read = 1 WHERE item_id = ?', (item_id,))
+        connection.commit()
+        self.close_connection()
+
+    def set_item_unread(self, item_id):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+        cursor.execute('UPDATE items SET read = 0 WHERE item_id = ?', (item_id,))
+        connection.commit()
+        self.close_connection()
+
