@@ -1,19 +1,17 @@
 #!/usr/bin/env python
 
+import config
 from datetime import datetime
 import os
 import sqlite3
 import urwid
 import xml.etree.ElementTree as xml
 
-UPDATE_INTERVAL = 60
-
 
 class Config():
-    CONFIG_PATH = '/home/mylk/.config/liferea/feedlist.opml'
 
     def get_sources(self):
-        tree = xml.parse(self.CONFIG_PATH)
+        tree = xml.parse(os.path.expanduser(config.CONFIG_PATH))
         root = tree.getroot()
 
         sources = {}
@@ -32,12 +30,11 @@ class Config():
 
 
 class Database():
-    DB_PATH = '/home/mylk/.local/share/liferea/liferea.db'
     connection = None
 
     def get_connection(self):
         if not self.connection:
-            self.connection = sqlite3.connect(self.DB_PATH)
+            self.connection = sqlite3.connect(os.path.expanduser(config.DB_PATH))
             self.connection.row_factory = sqlite3.Row
 
         return self.connection
@@ -123,6 +120,7 @@ class UnreadButton(urwid.Button):
     button_left = urwid.Text('.')
     button_right = urwid.Text('')
 
+
 def terminal_size():
     import fcntl, termios, struct
     th, tw, hp, wp = struct.unpack('HHHH',
@@ -174,7 +172,6 @@ def generate_interface(loop, rows):
 
     loop.widget = widget
 
-
 def source_chosen(button, the_node_id):
     global node_id
     node_id = the_node_id
@@ -204,10 +201,8 @@ def item_chosen(button, row):
     # @TODO: blocks execution if firefox is closed
     os.system('/usr/bin/firefox --new-tab {}'.format(row['url']))
 
-
 def exit_program(button):
     raise urwid.ExitMainLoop()
-
 
 def handle_input(key):
     global news_items
@@ -260,7 +255,6 @@ def handle_input(key):
 
         generate_interface(loop, rows)
 
-
 def schedule_and_generate_interface(loop = None, data = None):
     db = Database()
     rows = db.find_unread_news().fetchall()
@@ -268,7 +262,7 @@ def schedule_and_generate_interface(loop = None, data = None):
 
     generate_interface(loop, rows)
 
-    loop.set_alarm_in(UPDATE_INTERVAL, schedule_and_generate_interface)
+    loop.set_alarm_in(config.UPDATE_INTERVAL, schedule_and_generate_interface)
 
 
 node_id = None
@@ -278,7 +272,7 @@ news_list = urwid.SimpleListWalker([])
 pile = urwid.Pile([])
 widget = urwid.Filler(pile, valign='top')
 loop = urwid.MainLoop(widget, palette=[('reversed', 'standout', '')], unhandled_input=handle_input)
-loop.set_alarm_in(UPDATE_INTERVAL, schedule_and_generate_interface)
+loop.set_alarm_in(config.UPDATE_INTERVAL, schedule_and_generate_interface)
 
 db = Database()
 rows = db.find_unread_news().fetchall()
