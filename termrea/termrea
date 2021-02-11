@@ -34,6 +34,10 @@ def generate_interface(loop, rows):
         button = ReadButton(sources[source]['title'])
         urwid.connect_signal(button, 'click', source_chosen, source)
         sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
+        for subsource in sources[source]['sources']:
+            button = ReadButton('  ' + sources[source]['sources'][subsource]['title'])
+            urwid.connect_signal(button, 'click', source_chosen, subsource)
+            sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
     global news_items
     global news_list
@@ -46,9 +50,9 @@ def generate_interface(loop, rows):
     news_list = urwid.SimpleListWalker([])
     for row in rows:
         if not row['read']:
-            button = UnreadButton('{:<26} {:<{width}} {}'.format(row['source'], row['title'], row['date'], width=(terminal_size()-73)))
+            button = UnreadButton('{:<26} {:<{width}} {}'.format(row['source'], row['title'], row['date'], width=(terminal_size()-83)))
         else:
-            button = ReadButton('{:<26} {:<{width}} {}'.format(row['source'], row['title'], row['date'], width=(terminal_size()-73)))
+            button = ReadButton('{:<26} {:<{width}} {}'.format(row['source'], row['title'], row['date'], width=(terminal_size()-83)))
 
         urwid.connect_signal(button, 'click', item_chosen, row)
         news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
@@ -62,7 +66,7 @@ def generate_interface(loop, rows):
     elements_list = urwid.ListBox(news_list)
     
     sources_list = urwid.ListBox(sources_list)
-    columns = urwid.Columns([(20, sources_list), (1, urwid.SolidFill(' ')), ((terminal_size()-22), elements_list)])
+    columns = urwid.Columns([(30, sources_list), (1, urwid.SolidFill(' ')), ((terminal_size()-32), elements_list)])
     columns.set_focus(elements_list)
     
     pile = urwid.Pile([last_update_txt, urwid.Divider(), ((terminal_size()-22), columns)])
