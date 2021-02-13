@@ -3,6 +3,7 @@
 from datetime import datetime
 import os
 import urwid
+import webbrowser
 
 from adapters.config import ConfigAdapter
 from adapters.database import DatabaseAdapter
@@ -101,8 +102,7 @@ def item_chosen(button, row):
 
     generate_interface(loop, rows)
 
-    # @TODO: blocks execution if firefox is closed
-    os.system('/usr/bin/firefox --new-tab {}'.format(row['url']))
+    webbrowser.open_new_tab(row['url'])
 
 def exit_program(button):
     raise urwid.ExitMainLoop()
