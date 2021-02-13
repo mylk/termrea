@@ -57,14 +57,15 @@ def generate_interface(loop, rows):
         urwid.connect_signal(button, 'click', item_chosen, row)
         news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
-    # @TODO: handle case the item is the first and only
     if len(news_items) > index_with_focus:
         news_list.set_focus(index_with_focus)
-    else:
+    elif not news_items:
+        pass
+    elif len(news_items) == index_with_focus:
         news_list.set_focus((index_with_focus - 1))
 
     elements_list = urwid.ListBox(news_list)
-    
+
     sources_list = urwid.ListBox(sources_list)
     columns = urwid.Columns([(30, sources_list), (1, urwid.SolidFill(' ')), ((terminal_size()-32), elements_list)])
     columns.set_focus(elements_list)
