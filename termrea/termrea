@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 from datetime import datetime
-import os
+import fcntl
 import urwid
+import termios
+import struct
 import webbrowser
 
 from adapters.config import ConfigAdapter
@@ -21,11 +23,9 @@ class UnreadButton(urwid.Button):
 
 
 def terminal_size():
-    import fcntl, termios, struct
-    th, tw, hp, wp = struct.unpack('HHHH',
-        fcntl.ioctl(0, termios.TIOCGWINSZ,
-        struct.pack('HHHH', 0, 0, 0, 0)))
-    return tw
+    th, tw, hp, wp = struct.unpack('HHHH', fcntl.ioctl(0, termios.TIOCGWINSZ, struct.pack('HHHH', 0, 0, 0, 0)))
+    return th, tw
+
 
 def generate_interface(loop, rows):
     config = ConfigAdapter()
@@ -51,9 +51,9 @@ def generate_interface(loop, rows):
     news_list = urwid.SimpleListWalker([])
     for row in rows:
         if not row['read']:
-            button = UnreadButton('{:<26} {:<{width}} {}'.format(row['source'], row['title'], row['date'], width=(terminal_size()-83)))
+            button = UnreadButton('{:<26} {:<{width}} {}'.format(row['source'], row['title'], row['date'], width=(terminal_size()[1]-83)))
         else:
-            button = ReadButton('{:<26} {:<{width}} {}'.format(row['source'], row['title'], row['date'], width=(terminal_size()-83)))
+            button = ReadButton('{:<26} {:<{width}} {}'.format(row['source'], row['title'], row['date'], width=(terminal_size()[1]-83)))
 
         urwid.connect_signal(button, 'click', item_chosen, row)
         news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
@@ -68,13 +68,14 @@ def generate_interface(loop, rows):
     elements_list = urwid.ListBox(news_list)
 
     sources_list = urwid.ListBox(sources_list)
-    columns = urwid.Columns([(30, sources_list), (1, urwid.SolidFill(' ')), ((terminal_size()-32), elements_list)])
+    columns = urwid.Columns([(30, sources_list), (1, urwid.SolidFill(' ')), ((terminal_size()[1]-32), elements_list)])
     columns.set_focus(elements_list)
-    
-    pile = urwid.Pile([last_update_txt, urwid.Divider(), ((terminal_size()-22), columns)])
+
+    pile = urwid.Pile([last_update_txt, urwid.Divider(), ((terminal_size()[1]-22), columns)])
     widget = urwid.Filler(pile, valign='top')
 
     loop.widget = widget
+
 
 def source_chosen(button, the_node_id):
     global node_id
@@ -86,10 +87,11 @@ def source_chosen(button, the_node_id):
 
     generate_interface(loop, rows)
 
+
 def item_chosen(button, row):
     global index_with_focus
     global node_id
-    
+
     node_id = None
 
     DatabaseAdapter().set_item_read(row['item_id'])
@@ -104,14 +106,16 @@ def item_chosen(button, row):
 
     webbrowser.open_new_tab(row['url'])
 
+
 def exit_program(button):
     raise urwid.ExitMainLoop()
+
 
 def handle_input(key):
     global news_items
     global index_with_focus
     global node_id
-    
+
     if key in ['q', 'Q']:
         raise urwid.ExitMainLoop()
     elif key == 'h':
@@ -158,6 +162,7 @@ def handle_input(key):
 
         generate_interface(loop, rows)
 
+
 def schedule_and_generate_interface(loop = None, data = None):
     db = DatabaseAdapter()
     rows = db.find_unread_news().fetchall()
@@ -184,4 +189,3 @@ db.close_connection()
 generate_interface(loop, rows)
 
 loop.run()
-
