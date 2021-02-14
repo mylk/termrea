@@ -67,6 +67,17 @@ class DatabaseAdapter():
             ORDER BY date DESC
         ''', (node_id, node_id))
 
+    def get_unreads_node(self):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        return cursor.execute('''
+            SELECT node_id
+            FROM node
+            WHERE title = 'Unread'
+            AND type = 'vfolder'
+        ''')
+
     def toggle_read_status(self, item_id, read_status):
         connection = self.get_connection()
         cursor = connection.cursor()

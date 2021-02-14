@@ -82,7 +82,10 @@ def source_chosen(button, the_node_id):
     node_id = the_node_id
 
     db = DatabaseAdapter()
-    rows = db.get_node_items(the_node_id).fetchall()
+    if the_node_id == next(db.get_unreads_node())['node_id']:
+        rows = db.find_unread_news().fetchall()
+    else:
+        rows = db.get_node_items(the_node_id).fetchall()
     db.close_connection()
 
     generate_interface(loop, rows)
@@ -169,7 +172,7 @@ def handle_input(key):
 
 def schedule_and_generate_interface(loop = None, data = None):
     db = DatabaseAdapter()
-    if node_id:
+    if node_id and node_id != next(db.get_unreads_node())['node_id']:
         rows = db.get_node_items(node_id).fetchall()
     else:
         rows = db.find_unread_news().fetchall()
