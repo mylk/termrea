@@ -92,14 +92,15 @@ def item_chosen(button, row):
     global index_with_focus
     global node_id
 
-    node_id = None
-
     DatabaseAdapter().set_item_read(row['item_id'])
 
     index_with_focus = news_list.get_focus()[1]
 
     db = DatabaseAdapter()
-    rows = db.find_unread_news().fetchall()
+    if node_id:
+        rows = db.get_node_items(node_id).fetchall()
+    else:
+        rows = db.find_unread_news().fetchall()
     db.close_connection()
 
     generate_interface(loop, rows)
@@ -157,7 +158,10 @@ def handle_input(key):
         index_with_focus = news_list.get_focus()[1]
 
         db = DatabaseAdapter()
-        rows = db.find_unread_news().fetchall()
+        if node_id:
+            rows = db.get_node_items(node_id).fetchall()
+        else:
+            rows = db.find_unread_news().fetchall()
         db.close_connection()
 
         generate_interface(loop, rows)
@@ -165,7 +169,10 @@ def handle_input(key):
 
 def schedule_and_generate_interface(loop = None, data = None):
     db = DatabaseAdapter()
-    rows = db.find_unread_news().fetchall()
+    if node_id:
+        rows = db.get_node_items(node_id).fetchall()
+    else:
+        rows = db.find_unread_news().fetchall()
     db.close_connection()
 
     generate_interface(loop, rows)
