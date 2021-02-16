@@ -100,7 +100,7 @@ def item_chosen(button, row):
     index_with_focus = news_list.get_focus()[1]
 
     db = DatabaseAdapter()
-    if node_id:
+    if node_id and node_id != next(db.get_unreads_node())['node_id']:
         rows = db.get_node_items(node_id).fetchall()
     else:
         rows = db.find_unread_news().fetchall()
@@ -127,33 +127,33 @@ def handle_input(key):
         pass
     elif key == 'r':
         index_with_focus = news_list.get_focus()[1]
+        if index_with_focus is None:
+            return
 
         focused_item = news_items[int(index_with_focus)]
         DatabaseAdapter().set_item_read(focused_item[2])
 
         db = DatabaseAdapter()
-
-        if node_id:
+        if node_id and node_id != next(db.get_unreads_node())['node_id']:
             rows = db.get_node_items(node_id).fetchall()
         else:
             rows = db.find_unread_news().fetchall()
-
         db.close_connection()
 
         generate_interface(loop, rows)
     elif key == 'u':
         index_with_focus = news_list.get_focus()[1]
+        if index_with_focus is None:
+            return
 
         focused_item = news_items[int(index_with_focus)]
         DatabaseAdapter().set_item_unread(focused_item[2])
 
         db = DatabaseAdapter()
-
-        if node_id:
+        if node_id and node_id != next(db.get_unreads_node())['node_id']:
             rows = db.get_node_items(node_id).fetchall()
         else:
             rows = db.find_unread_news().fetchall()
-
         db.close_connection()
 
         generate_interface(loop, rows)
@@ -161,7 +161,7 @@ def handle_input(key):
         index_with_focus = news_list.get_focus()[1]
 
         db = DatabaseAdapter()
-        if node_id:
+        if node_id and node_id != next(db.get_unreads_node())['node_id']:
             rows = db.get_node_items(node_id).fetchall()
         else:
             rows = db.find_unread_news().fetchall()
