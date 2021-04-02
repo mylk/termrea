@@ -71,7 +71,7 @@ def generate_interface(loop, rows):
     columns = urwid.Columns([(30, sources_list), (1, urwid.SolidFill(' ')), ((terminal_size()[1]-32), elements_list)])
     columns.set_focus(elements_list)
 
-    pile = urwid.Pile([last_update_txt, urwid.Divider(), ((terminal_size()[1]-22), columns)])
+    pile = urwid.Pile([last_update_txt, urwid.Divider(), ((terminal_size()[0]-2), columns)])
     widget = urwid.Filler(pile, valign='top')
 
     loop.widget = widget
