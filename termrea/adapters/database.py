@@ -36,7 +36,7 @@ class DatabaseAdapter():
         cursor = connection.cursor()
 
         return cursor.execute('''
-            SELECT COUNT(*)
+            SELECT COUNT(*) AS unreads_count
             FROM items AS i
             INNER JOIN node AS n
             ON i.node_id = n.node_id
@@ -45,7 +45,7 @@ class DatabaseAdapter():
                 n.node_id = ?
                 OR n.parent_id = ?
             )
-        ''', (node_id,))
+        ''', (node_id, node_id))
 
     def get_node_items(self, node_id):
         connection = self.get_connection()
