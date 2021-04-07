@@ -10,16 +10,8 @@ import webbrowser
 from adapters.config import ConfigAdapter
 from adapters.database import DatabaseAdapter
 import config
-
-
-class ReadButton(urwid.Button):
-    button_left = urwid.Text('')
-    button_right = urwid.Text('')
-
-
-class UnreadButton(urwid.Button):
-    button_left = urwid.Text('.')
-    button_right = urwid.Text('')
+from widgets.readbutton import ReadButton
+from widgets.unreadbutton import UnreadButton
 
 
 def terminal_size():
