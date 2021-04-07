@@ -136,14 +136,6 @@ def handle_input(key):
         focused_item = news_items[int(index_with_focus)]
         DatabaseAdapter().set_item_read(focused_item[2])
 
-        db = DatabaseAdapter()
-        if node_id and node_id != next(db.get_unreads_node())['node_id']:
-            rows = db.get_node_items(node_id).fetchall()
-        else:
-            rows = db.find_unread_news().fetchall()
-        db.close_connection()
-
-        generate_interface(loop, rows)
     elif key == 'u':
         index_with_focus = news_list.get_focus()[1]
         if index_with_focus is None:
@@ -152,28 +144,21 @@ def handle_input(key):
         focused_item = news_items[int(index_with_focus)]
         DatabaseAdapter().set_item_unread(focused_item[2])
 
-        db = DatabaseAdapter()
-        if node_id and node_id != next(db.get_unreads_node())['node_id']:
-            rows = db.get_node_items(node_id).fetchall()
-        else:
-            rows = db.find_unread_news().fetchall()
-        db.close_connection()
-
-        generate_interface(loop, rows)
     elif key == 'f':
         index_with_focus = news_list.get_focus()[1]
 
-        db = DatabaseAdapter()
-        if node_id and node_id != next(db.get_unreads_node())['node_id']:
-            rows = db.get_node_items(node_id).fetchall()
-        else:
-            rows = db.find_unread_news().fetchall()
-        db.close_connection()
-
-        generate_interface(loop, rows)
+    rows = get_news_items()
+    generate_interface(loop, rows)
 
 
 def schedule_and_generate_interface(loop = None, data = None):
+    rows = get_news_items()
+    generate_interface(loop, rows)
+
+    loop.set_alarm_in(config.UPDATE_INTERVAL, schedule_and_generate_interface)
+
+
+def get_news_items():
     db = DatabaseAdapter()
     if node_id and node_id != next(db.get_unreads_node())['node_id']:
         rows = db.get_node_items(node_id).fetchall()
@@ -181,9 +166,7 @@ def schedule_and_generate_interface(loop = None, data = None):
         rows = db.find_unread_news().fetchall()
     db.close_connection()
 
-    generate_interface(loop, rows)
-
-    loop.set_alarm_in(config.UPDATE_INTERVAL, schedule_and_generate_interface)
+    return rows
 
 
 node_id = None
