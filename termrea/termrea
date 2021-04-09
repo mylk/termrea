@@ -44,8 +44,6 @@ def generate_interface(loop, rows):
 
     global news_items
     global news_list
-    global index_with_focus
-    index_with_focus = news_list.get_focus()[1] if news_list.get_focus()[1] else 0
     news_items = rows
 
     last_update_txt = urwid.Text(datetime.now().strftime('%c'))
@@ -86,7 +84,10 @@ def generate_interface(loop, rows):
 
 
 def source_chosen(button, the_node_id):
+    global index_with_focus
     global node_id
+
+    index_with_focus = 0
     node_id = the_node_id
 
     db = DatabaseAdapter()
@@ -124,9 +125,10 @@ def exit_program(button):
 
 
 def handle_input(key):
-    global news_items
     global index_with_focus
-    global node_id
+
+    # get the focused item index of each list
+    index_with_focus = news_list.get_focus()[1]
 
     if key in ['q', 'Q']:
         raise urwid.ExitMainLoop()
@@ -134,29 +136,31 @@ def handle_input(key):
         # @TODO: show help with available keys
         pass
     elif key == 'r':
-        index_with_focus = news_list.get_focus()[1]
         if index_with_focus is None:
             return
 
         focused_item = news_items[int(index_with_focus)]
         DatabaseAdapter().set_item_read(focused_item['item_id'])
-
     elif key == 'u':
-        index_with_focus = news_list.get_focus()[1]
         if index_with_focus is None:
             return
 
         focused_item = news_items[int(index_with_focus)]
         DatabaseAdapter().set_item_unread(focused_item['item_id'])
-
     elif key == 'f':
-        index_with_focus = news_list.get_focus()[1]
+        pass
+    else:
+        return
 
     rows = get_news_items()
     generate_interface(loop, rows)
 
 
 def schedule_and_generate_interface(loop = None, data = None):
+    # retain the focused item after updating the list
+    global index_with_focus
+    index_with_focus = news_list.get_focus()[1] if news_list.get_focus()[1] else 0
+
     rows = get_news_items()
     generate_interface(loop, rows)
 
@@ -174,6 +178,7 @@ def get_news_items():
     return rows
 
 
+index_with_focus = 0
 node_id = None
 news_items = []
 news_list = urwid.SimpleListWalker([])
