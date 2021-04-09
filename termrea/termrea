@@ -20,6 +20,10 @@ def get_terminal_size():
 
 
 def generate_interface(loop, rows):
+    db = DatabaseAdapter()
+    unread_items = db.find_unread_news().fetchall()
+    db.close_connection()
+
     config = ConfigAdapter()
     sources = config.get_sources()
     sources_list = urwid.SimpleListWalker([])
@@ -28,7 +32,13 @@ def generate_interface(loop, rows):
         urwid.connect_signal(button, 'click', source_chosen, source)
         sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
         for subsource in sources[source]['sources']:
-            button = ReadButton('  ' + sources[source]['sources'][subsource]['title'])
+            for unread_item in unread_items:
+                if unread_item['source_id'] == subsource and unread_item['read'] == 0:
+                    button = ReadButton('. ' + sources[source]['sources'][subsource]['title'])
+                    break
+                else:
+                    button = ReadButton('  ' + sources[source]['sources'][subsource]['title'])
+
             urwid.connect_signal(button, 'click', source_chosen, subsource)
             sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
@@ -129,7 +139,7 @@ def handle_input(key):
             return
 
         focused_item = news_items[int(index_with_focus)]
-        DatabaseAdapter().set_item_read(focused_item[2])
+        DatabaseAdapter().set_item_read(focused_item['item_id'])
 
     elif key == 'u':
         index_with_focus = news_list.get_focus()[1]
@@ -137,7 +147,7 @@ def handle_input(key):
             return
 
         focused_item = news_items[int(index_with_focus)]
-        DatabaseAdapter().set_item_unread(focused_item[2])
+        DatabaseAdapter().set_item_unread(focused_item['item_id'])
 
     elif key == 'f':
         index_with_focus = news_list.get_focus()[1]

@@ -19,6 +19,7 @@ class DatabaseAdapter():
 
         return cursor.execute('''
             SELECT datetime(date, 'unixepoch') AS date,
+            i.node_id AS source_id,
             n.title AS source,
             i.item_id,
             i.title,
@@ -53,6 +54,7 @@ class DatabaseAdapter():
 
         return cursor.execute('''
             SELECT datetime(date, 'unixepoch') AS date,
+            i.node_id AS source_id,
             n.title AS source,
             i.item_id,
             IFNULL(i.title, '') AS title,
