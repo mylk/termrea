@@ -93,6 +93,28 @@ class DatabaseAdapter():
     def set_item_unread(self, item_id):
         self.toggle_read_status(item_id, 0)
 
+    def toggle_source_read_status(self, source_id, read_status):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+        cursor.execute('''
+            UPDATE items
+            SET read = ?
+            WHERE item_id IN (
+                SELECT i.item_id
+                FROM items AS i
+                INNER JOIN node AS n ON i.node_id = n.node_id
+                AND (
+                    n.node_id = ?
+                    OR n.parent_id = ?
+                )
+                AND i.read = 0
+            )''', (read_status, source_id, source_id))
+        connection.commit()
+        self.close_connection()
+
+    def set_source_read(self, source_id):
+        self.toggle_source_read_status(source_id, 1)
+
     def close_connection(self):
         self.get_connection().close()
 

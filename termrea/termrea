@@ -11,6 +11,7 @@ from adapters.config import ConfigAdapter
 from adapters.database import DatabaseAdapter
 import config
 from widgets.readbutton import ReadButton
+from widgets.sourcebutton import SourceButton
 from widgets.unreadbutton import UnreadButton
 
 
@@ -24,22 +25,25 @@ def generate_interface(loop, rows):
     unread_items = db.find_unread_news().fetchall()
     db.close_connection()
 
-    config = ConfigAdapter()
-    sources = config.get_sources()
+    global sources_list
+    global columns
+
     sources_list = urwid.SimpleListWalker([])
     for source in sources:
-        button = ReadButton(sources[source]['title'])
+        button = SourceButton(sources[source]['title'])
         urwid.connect_signal(button, 'click', source_chosen, source)
+        urwid.connect_signal(button, 'read', mark_source_as_read, source)
         sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
         for subsource in sources[source]['sources']:
             for unread_item in unread_items:
                 if unread_item['source_id'] == subsource and unread_item['read'] == 0:
-                    button = ReadButton('. ' + sources[source]['sources'][subsource]['title'])
+                    button = SourceButton('. ' + sources[source]['sources'][subsource]['title'])
                     break
                 else:
-                    button = ReadButton('  ' + sources[source]['sources'][subsource]['title'])
+                    button = SourceButton('  ' + sources[source]['sources'][subsource]['title'])
 
             urwid.connect_signal(button, 'click', source_chosen, subsource)
+            urwid.connect_signal(button, 'read', mark_source_as_read, subsource)
             sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
     global news_items
@@ -83,7 +87,23 @@ def generate_interface(loop, rows):
     loop.widget = widget
 
 
-def source_chosen(button, the_node_id):
+def mark_source_as_read(the_node_id):
+    global index_with_focus
+    global node_id
+
+    index_with_focus = 0
+    node_id = the_node_id
+
+    DatabaseAdapter().set_source_read(the_node_id)
+
+    db = DatabaseAdapter()
+    rows = db.find_unread_news().fetchall()
+    db.close_connection()
+
+    generate_interface(loop, rows)
+
+
+def source_chosen(the_node_id):
     global index_with_focus
     global node_id
 
@@ -127,8 +147,11 @@ def exit_program(button):
 def handle_input(key):
     global index_with_focus
 
+    # get the focused item by any list
+    selected_item = columns.get_focus_widgets()[1].base_widget
     # get the focused item index of each list
     index_with_focus = news_list.get_focus()[1]
+    source_with_focus = sources_list.get_focus()[1]
 
     if key in ['q', 'Q']:
         raise urwid.ExitMainLoop()
@@ -136,12 +159,18 @@ def handle_input(key):
         # @TODO: show help with available keys
         pass
     elif key == 'r':
+        if type(selected_item) == SourceButton:
+            return
+
         if index_with_focus is None:
             return
 
         focused_item = news_items[int(index_with_focus)]
         DatabaseAdapter().set_item_read(focused_item['item_id'])
     elif key == 'u':
+        if type(selected_item) == SourceButton:
+            return
+
         if index_with_focus is None:
             return
 
@@ -178,10 +207,18 @@ def get_news_items():
     return rows
 
 
+urwid.register_signal(SourceButton, ['click', 'read'])
+
 index_with_focus = 0
+columns = None
 node_id = None
 news_items = []
+
+config_adapter = ConfigAdapter()
+sources = config_adapter.get_sources()
+
 news_list = urwid.SimpleListWalker([])
+sources_list = urwid.SimpleListWalker([])
 
 pile = urwid.Pile([])
 widget = urwid.Filler(pile, valign='top')
