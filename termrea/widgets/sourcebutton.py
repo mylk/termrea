@@ -2,11 +2,9 @@ import urwid
 
 
 class SourceButton(urwid.Button):
-    button_left = urwid.Text('')
-    button_right = urwid.Text('')
 
     def __init__(self, label, on_press=None, user_data=None):
-        self._label = urwid.wimp.SelectableIcon('  ' + label)
+        self._label = urwid.wimp.SelectableIcon(label)
         super(urwid.Button, self).__init__(self._label)
 
     def keypress(self, size, key):
