@@ -17,7 +17,7 @@ class ReadButton(urwid.Button):
         urwid.WidgetWrap.__init__(self, cols)
 
     def keypress(self, size, key):
-        if key in ('up', 'down', 'left', 'right', 'page up', 'page down', 'home', 'end', 'q', 'Q'):
+        if key in ('up', 'down', 'left', 'right', 'page up', 'page down', 'home', 'end', 'q', 'Q', 'f'):
             return super(urwid.Button, self).keypress(size, key)
 
         if key == 'enter':

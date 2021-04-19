@@ -186,6 +186,9 @@ def handle_input(key):
         # @TODO: show help with available keys
         pass
     elif key == 'f':
+        global index_with_focus
+        index_with_focus = news_list.get_focus()[1]
+
         rows = get_news_items()
         generate_interface(loop, rows)
     else:
