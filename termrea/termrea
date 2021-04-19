@@ -94,7 +94,7 @@ def mark_source_as_read(the_node_id):
     global node_id
 
     index_with_focus = 0
-    node_id = the_node_id
+    node_id = node_id_unreads
 
     DatabaseAdapter().set_source_read(the_node_id)
 
@@ -113,7 +113,7 @@ def source_chosen(the_node_id):
     node_id = the_node_id
 
     db = DatabaseAdapter()
-    if the_node_id == next(db.get_unreads_node())['node_id']:
+    if the_node_id == node_id_unreads:
         rows = db.find_unread_news().fetchall()
     else:
         rows = db.get_node_items(the_node_id).fetchall()
@@ -130,7 +130,7 @@ def mark_item_as_read(the_item_id):
     DatabaseAdapter().set_item_read(the_item_id)
 
     db = DatabaseAdapter()
-    if node_id == next(db.get_unreads_node())['node_id']:
+    if node_id == node_id_unreads:
         rows = db.find_unread_news().fetchall()
     else:
         rows = db.get_node_items(node_id).fetchall()
@@ -147,7 +147,7 @@ def mark_item_as_unread(the_item_id):
     DatabaseAdapter().set_item_unread(the_item_id)
 
     db = DatabaseAdapter()
-    if node_id == next(db.get_unreads_node())['node_id']:
+    if node_id == node_id_unreads:
         rows = db.find_unread_news().fetchall()
     else:
         rows = db.get_node_items(node_id).fetchall()
@@ -164,7 +164,7 @@ def item_chosen(row):
     index_with_focus = news_list.get_focus()[1]
 
     db = DatabaseAdapter()
-    if node_id and node_id != next(db.get_unreads_node())['node_id']:
+    if node_id and node_id != node_id_unreads:
         rows = db.get_node_items(node_id).fetchall()
     else:
         rows = db.find_unread_news().fetchall()
@@ -208,7 +208,7 @@ def schedule_and_generate_interface(loop = None, data = None):
 
 def get_news_items():
     db = DatabaseAdapter()
-    if node_id and node_id != next(db.get_unreads_node())['node_id']:
+    if node_id and node_id != node_id_unreads:
         rows = db.get_node_items(node_id).fetchall()
     else:
         rows = db.find_unread_news().fetchall()
@@ -223,7 +223,8 @@ urwid.register_signal(SourceButton, ['click', 'read', 'unread'])
 
 index_with_focus = 0
 columns = None
-node_id = next(DatabaseAdapter().get_unreads_node())['node_id']
+node_id_unreads = next(DatabaseAdapter().get_unreads_node())['node_id']
+node_id = node_id_unreads
 news_items = []
 
 config_adapter = ConfigAdapter()
