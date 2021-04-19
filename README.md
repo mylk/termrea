@@ -1,6 +1,6 @@
 ## termrea
 
-A terminal RSS reader based on `liferea`.
+A terminal RSS reader heavily based on `liferea`.
 
 ![](docs/images/screenshot.png)
 
@@ -48,6 +48,7 @@ termrea
 | ↑ ↓ ← → | navigate                           |
 | r       | read                               |
 | u       | unread                             |
+| enter   | open feed item on browser          |
 | f       | fetch content fetched by `liferea` |
 | q       | quit                               |
 
