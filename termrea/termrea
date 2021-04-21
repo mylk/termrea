@@ -123,9 +123,7 @@ def source_chosen(the_node_id):
 
 
 def mark_item_as_read(the_item_id):
-    global index_with_focus
-
-    index_with_focus = news_list.get_focus()[1]
+    set_focused_item()
 
     DatabaseAdapter().set_item_read(the_item_id)
 
@@ -140,9 +138,7 @@ def mark_item_as_read(the_item_id):
 
 
 def mark_item_as_unread(the_item_id):
-    global index_with_focus
-
-    index_with_focus = news_list.get_focus()[1]
+    set_focused_item()
 
     DatabaseAdapter().set_item_unread(the_item_id)
 
@@ -157,11 +153,9 @@ def mark_item_as_unread(the_item_id):
 
 
 def item_chosen(row):
-    global index_with_focus
+    set_focused_item()
 
     DatabaseAdapter().set_item_read(row['item_id'])
-
-    index_with_focus = news_list.get_focus()[1]
 
     db = DatabaseAdapter()
     if node_id and node_id != node_id_unreads:
@@ -175,10 +169,6 @@ def item_chosen(row):
     webbrowser.open_new_tab(row['url'])
 
 
-def exit_program(button):
-    raise urwid.ExitMainLoop()
-
-
 def handle_input(key):
     if key in ['q', 'Q']:
         raise urwid.ExitMainLoop()
@@ -186,8 +176,7 @@ def handle_input(key):
         # @TODO: show help with available keys
         pass
     elif key == 'f':
-        global index_with_focus
-        index_with_focus = news_list.get_focus()[1]
+        set_focused_item()
 
         rows = get_news_items()
         generate_interface(loop, rows)
@@ -196,9 +185,7 @@ def handle_input(key):
 
 
 def schedule_and_generate_interface(loop = None, data = None):
-    # retain the focused item after updating the list
-    global index_with_focus
-    index_with_focus = news_list.get_focus()[1] if news_list.get_focus()[1] else 0
+    set_focused_item()
 
     rows = get_news_items()
     generate_interface(loop, rows)
@@ -215,6 +202,19 @@ def get_news_items():
     db.close_connection()
 
     return rows
+
+
+def set_focused_item():
+    # retain the focused item after updating the list
+    global index_with_focus
+
+    list_with_focus = news_list
+
+    #selected_item = columns.get_focus_widgets()[1].base_widget
+    #if type(selected_item) == SourceButton:
+    #    list_with_focus = sources_list
+
+    index_with_focus = list_with_focus.get_focus()[1] if list_with_focus.get_focus()[1] else 0
 
 
 urwid.register_signal(UnreadButton, ['click', 'read'])
