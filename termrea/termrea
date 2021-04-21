@@ -82,48 +82,46 @@ def generate_interface(loop, rows):
     loop.widget = widget
 
 
-def mark_source_as_read(the_node_id):
+def mark_source_as_read(node_id):
     global index_with_focus
-    global node_id
 
     index_with_focus = 0
-    node_id = node_id_unreads
 
-    DatabaseAdapter().set_source_read(the_node_id)
+    DatabaseAdapter().set_source_read(node_id)
 
-    rows = get_source_items(node_id)
+    rows = get_source_items(selected_node_id)
 
     generate_interface(loop, rows)
 
 
-def source_chosen(the_node_id):
+def source_chosen(node_id):
     global index_with_focus
-    global node_id
+    global selected_node_id
 
     index_with_focus = 0
-    node_id = the_node_id
+    selected_node_id = node_id
 
     rows = get_source_items(node_id)
 
     generate_interface(loop, rows)
 
 
-def mark_item_as_read(the_item_id):
+def mark_item_as_read(item_id):
     set_focused_item()
 
-    DatabaseAdapter().set_item_read(the_item_id)
+    DatabaseAdapter().set_item_read(item_id)
 
-    rows = get_source_items(node_id)
+    rows = get_source_items(selected_node_id)
 
     generate_interface(loop, rows)
 
 
-def mark_item_as_unread(the_item_id):
+def mark_item_as_unread(item_id):
     set_focused_item()
 
-    DatabaseAdapter().set_item_unread(the_item_id)
+    DatabaseAdapter().set_item_unread(item_id)
 
-    rows = get_source_items(node_id)
+    rows = get_source_items(selected_node_id)
 
     generate_interface(loop, rows)
 
@@ -134,7 +132,7 @@ def item_chosen(row):
     DatabaseAdapter().set_item_read(row['item_id'])
 
     db = DatabaseAdapter()
-    rows = get_source_items(node_id)
+    rows = get_source_items(selected_node_id)
 
     generate_interface(loop, rows)
 
@@ -150,7 +148,7 @@ def handle_input(key):
     elif key == 'f':
         set_focused_item()
 
-        rows = get_source_items(node_id)
+        rows = get_source_items(selected_node_id)
         generate_interface(loop, rows)
     else:
         return
@@ -159,17 +157,17 @@ def handle_input(key):
 def schedule_and_generate_interface(loop = None, data = None):
     set_focused_item()
 
-    rows = get_source_items(node_id)
+    rows = get_source_items(selected_node_id)
     generate_interface(loop, rows)
 
     loop.set_alarm_in(config.UPDATE_INTERVAL, schedule_and_generate_interface)
 
 
-def get_source_items(the_node_id):
+def get_source_items(node_id):
     db = DatabaseAdapter()
 
-    if the_node_id and the_node_id != node_id_unreads:
-        rows = db.get_node_items(the_node_id).fetchall()
+    if node_id and node_id != node_id_unreads:
+        rows = db.get_node_items(node_id).fetchall()
     else:
         rows = db.find_unread_news().fetchall()
     db.close_connection()
@@ -197,7 +195,7 @@ urwid.register_signal(SourceButton, ['click', 'read', 'unread'])
 index_with_focus = 0
 columns = None
 node_id_unreads = next(DatabaseAdapter().get_unreads_node())['node_id']
-node_id = node_id_unreads
+selected_node_id = node_id_unreads
 news_items = []
 
 config_adapter = ConfigAdapter()
