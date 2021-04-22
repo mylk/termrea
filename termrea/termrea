@@ -13,13 +13,10 @@ from widgets.sourcebutton import SourceButton
 from widgets.unreadbutton import UnreadButton
 
 
-def generate_interface(loop, rows):
+def generate_sources_list():
     db = DatabaseAdapter()
     unread_items = db.find_unread_news().fetchall()
     db.close_connection()
-
-    global sources_list
-    global columns
 
     sources_list = urwid.SimpleListWalker([])
     for source in sources:
@@ -27,26 +24,27 @@ def generate_interface(loop, rows):
         urwid.connect_signal(button, 'click', source_chosen, source)
         urwid.connect_signal(button, 'read', mark_source_as_read, source)
         sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
+
         for subsource in sources[source]['sources']:
+            title_prefix = '  '
             for unread_item in unread_items:
                 if unread_item['source_id'] == subsource and unread_item['read'] == 0:
-                    button = SourceButton('. ' + sources[source]['sources'][subsource]['title'])
+                    title_prefix = '. '
                     break
-                else:
-                    button = SourceButton('  ' + sources[source]['sources'][subsource]['title'])
 
+            button = SourceButton(title_prefix + sources[source]['sources'][subsource]['title'])
             urwid.connect_signal(button, 'click', source_chosen, subsource)
             urwid.connect_signal(button, 'read', mark_source_as_read, subsource)
             sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
-    global news_items
-    global news_list
-    news_items = rows
+    return sources_list
 
-    last_update_txt = urwid.Text(datetime.now().strftime('%c'))
 
+def generate_news_list(rows):
     terminal_size = os.get_terminal_size()
+
     news_list = urwid.SimpleListWalker([])
+
     for row in rows:
         section_width = terminal_size.columns - 82
         button_width = terminal_size.columns - 79
@@ -63,6 +61,14 @@ def generate_interface(loop, rows):
         urwid.connect_signal(button, 'click', item_chosen, row)
         news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
+    return news_list
+
+
+def generate_interface(loop, news_items):
+    last_update_txt = urwid.Text(datetime.now().strftime('%c'))
+    sources_list = generate_sources_list()
+    news_list = generate_news_list(news_items)
+
     if len(news_items) > index_with_focus:
         news_list.set_focus(index_with_focus)
     elif not news_items:
@@ -71,8 +77,9 @@ def generate_interface(loop, rows):
         news_list.set_focus((index_with_focus - 1))
 
     elements_list = urwid.ListBox(news_list)
-
     sources_list = urwid.ListBox(sources_list)
+
+    terminal_size = os.get_terminal_size()
     columns = urwid.Columns([(28, sources_list), (1, urwid.SolidFill(' ')), ((terminal_size.columns - 29), elements_list)])
     columns.set_focus(elements_list)
 
@@ -170,6 +177,7 @@ def get_source_items(node_id):
         rows = db.get_node_items(node_id).fetchall()
     else:
         rows = db.find_unread_news().fetchall()
+
     db.close_connection()
 
     return rows
@@ -179,9 +187,11 @@ def set_focused_item():
     # retain the focused item after updating the list
     global index_with_focus
 
-    list_with_focus = news_list
+    # get the news items list and sources list
+    list_with_focus = loop.widget.get_body()[2].widget_list[2].body
+    #sources_list = loop.widget.get_body()[2].widget_list[0].body
 
-    #selected_item = columns.get_focus_widgets()[1].base_widget
+    #selected_item = loop.widget.get_body()[2].get_focus_widgets()[1].base_widget
     #if type(selected_item) == SourceButton:
     #    list_with_focus = sources_list
 
@@ -190,29 +200,20 @@ def set_focused_item():
 
 urwid.register_signal(UnreadButton, ['click', 'read'])
 urwid.register_signal(ReadButton, ['click', 'unread'])
-urwid.register_signal(SourceButton, ['click', 'read', 'unread'])
+urwid.register_signal(SourceButton, ['click', 'read'])
 
 index_with_focus = 0
-columns = None
 node_id_unreads = next(DatabaseAdapter().get_unreads_node())['node_id']
 selected_node_id = node_id_unreads
-news_items = []
 
 config_adapter = ConfigAdapter()
 sources = config_adapter.get_sources()
 
-news_list = urwid.SimpleListWalker([])
-sources_list = urwid.SimpleListWalker([])
-
-pile = urwid.Pile([])
-widget = urwid.Filler(pile, valign='top')
+widget = urwid.Filler(urwid.Pile([]), valign='top')
 loop = urwid.MainLoop(widget, palette=[('reversed', 'standout', '')], unhandled_input=handle_input)
 loop.set_alarm_in(config.UPDATE_INTERVAL, schedule_and_generate_interface)
 
-db = DatabaseAdapter()
-rows = db.find_unread_news().fetchall()
-db.close_connection()
-
+rows = get_source_items(node_id_unreads)
 generate_interface(loop, rows)
 
 loop.run()
