@@ -69,19 +69,24 @@ def generate_interface(loop, news_items):
     sources_list = generate_sources_list()
     news_list = generate_news_list(news_items)
 
-    if len(news_items) > index_with_focus:
-        news_list.set_focus(index_with_focus)
-    elif not news_items:
-        pass
-    elif len(news_items) == index_with_focus:
-        news_list.set_focus((index_with_focus - 1))
-
     elements_list = urwid.ListBox(news_list)
     sources_list = urwid.ListBox(sources_list)
 
+    if list_with_focus == 'news_list':
+        selected_list = elements_list
+    else:
+        selected_list = sources_list
+
+    if len(selected_list.body) == 0:
+        pass
+    elif len(selected_list.body) > index_with_focus:
+        selected_list.set_focus(index_with_focus)
+    elif len(selected_list.body) == index_with_focus:
+        selected_list.set_focus((index_with_focus - 1))
+
     terminal_size = os.get_terminal_size()
     columns = urwid.Columns([(28, sources_list), (1, urwid.SolidFill(' ')), ((terminal_size.columns - 29), elements_list)])
-    columns.set_focus(elements_list)
+    columns.set_focus(selected_list)
 
     pile = urwid.Pile([last_update_txt, urwid.Divider(), ((terminal_size.lines - 2), columns)])
     widget = urwid.Filler(pile, valign='top')
@@ -90,9 +95,7 @@ def generate_interface(loop, news_items):
 
 
 def mark_source_as_read(node_id):
-    global index_with_focus
-
-    index_with_focus = 0
+    set_focused_item()
 
     DatabaseAdapter().set_source_read(node_id)
 
@@ -102,11 +105,10 @@ def mark_source_as_read(node_id):
 
 
 def source_chosen(node_id):
-    global index_with_focus
     global selected_node_id
-
-    index_with_focus = 0
     selected_node_id = node_id
+
+    set_focused_item()
 
     rows = get_source_items(node_id)
 
@@ -138,7 +140,6 @@ def item_chosen(row):
 
     DatabaseAdapter().set_item_read(row['item_id'])
 
-    db = DatabaseAdapter()
     rows = get_source_items(selected_node_id)
 
     generate_interface(loop, rows)
@@ -186,16 +187,21 @@ def get_source_items(node_id):
 def set_focused_item():
     # retain the focused item after updating the list
     global index_with_focus
+    global list_with_focus
 
-    # get the news items list and sources list
-    list_with_focus = loop.widget.get_body()[2].widget_list[2].body
-    #sources_list = loop.widget.get_body()[2].widget_list[0].body
+    # get from the main loop the news items list, sources list, focused item
+    columns = loop.widget.get_body()[2]
+    news_list = columns.widget_list[2].body
+    sources_list = columns.widget_list[0].body
+    item_with_focus = columns.get_focus_widgets()[1].base_widget
 
-    #selected_item = loop.widget.get_body()[2].get_focus_widgets()[1].base_widget
-    #if type(selected_item) == SourceButton:
-    #    list_with_focus = sources_list
+    list_with_focus = 'news_list'
+    selected_list = news_list
+    if type(item_with_focus) == SourceButton:
+        list_with_focus = 'sources_list'
+        selected_list = sources_list
 
-    index_with_focus = list_with_focus.get_focus()[1] if list_with_focus.get_focus()[1] else 0
+    index_with_focus = selected_list.get_focus()[1] if selected_list.get_focus()[1] else 0
 
 
 urwid.register_signal(UnreadButton, ['click', 'read'])
@@ -203,6 +209,7 @@ urwid.register_signal(ReadButton, ['click', 'unread'])
 urwid.register_signal(SourceButton, ['click', 'read'])
 
 index_with_focus = 0
+list_with_focus = 'news_list'
 node_id_unreads = next(DatabaseAdapter().get_unreads_node())['node_id']
 selected_node_id = node_id_unreads
 
