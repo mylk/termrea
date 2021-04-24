@@ -2,7 +2,7 @@ import urwid
 
 
 class UnreadButton(urwid.Button):
-    button_left = urwid.Text('.')
+    button_left = urwid.Text('·')
     button_right = urwid.Text('')
 
     def __init__(self, label, on_press=None, user_data=None):

@@ -29,7 +29,7 @@ def generate_sources_list():
             title_prefix = '  '
             for unread_item in unread_items:
                 if unread_item['source_id'] == subsource and unread_item['read'] == 0:
-                    title_prefix = '. '
+                    title_prefix = '· '
                     break
 
             button = SourceButton(title_prefix + sources[source]['sources'][subsource]['title'])
