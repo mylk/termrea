@@ -200,7 +200,7 @@ def set_focused_item():
     columns = loop.widget.get_body()[2]
     news_list = columns.widget_list[2].body
     sources_list = columns.widget_list[0].body
-    item_with_focus = columns.get_focus_widgets()[1].base_widget
+    item_with_focus = columns.get_focus_widgets()[1].base_widget if len(columns.get_focus_widgets()) > 1 else None
 
     list_with_focus = 'news_list'
     selected_list = news_list
