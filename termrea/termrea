@@ -148,7 +148,7 @@ def item_chosen(row):
 
 
 def handle_input(key):
-    if key in ['q', 'Q']:
+    if key == 'q':
         raise urwid.ExitMainLoop()
     elif key == 'h':
         # @TODO: show help with available keys
