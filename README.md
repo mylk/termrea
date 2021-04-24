@@ -17,7 +17,7 @@ This application uses two main elements of liferea:
 - the database `liferea.db` which contains the news items.
 
 Also, currently the feed fetching mechanism of liferea is used, which means that liferea has to run  
-along  with termrea. I prefer to run it on a framebuffer, instead of the actual X session.
+along  with termrea. I prefer to run it on a [framebuffer](https://github.com/mylk/tools/blob/master/liferea-xvfb.sh), instead of the actual X session.
 
 Last but not least, currently to manage the RSS feeds (create, update, delete) you have to use liferea.
 
@@ -49,14 +49,14 @@ termrea
 
 ### Controls
 
-| Key     | Description                        |
-| :-----: | :--------------------------------- |
-| ↑ ↓ ← → | navigate                           |
-| r       | read                               |
-| u       | unread                             |
-| enter   | open feed item on browser          |
-| f       | fetch content fetched by liferea   |
-| q       | quit                               |
+| Key     | Description                         |
+| :-----: | :---------------------------------- |
+| ↑ ↓ ← → | navigate                            |
+| r       | read                                |
+| u       | unread                              |
+| enter   | open item on browser, select source |
+| f       | fetch content fetched by liferea    |
+| q       | quit                                |
 
 ### Configure
 
