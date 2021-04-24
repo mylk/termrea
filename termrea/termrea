@@ -97,7 +97,14 @@ def generate_interface(loop, news_items):
 def mark_source_as_read(node_id):
     set_focused_item()
 
-    DatabaseAdapter().set_source_read(node_id)
+    db = DatabaseAdapter()
+
+    if node_id == node_id_unreads:
+        db.set_unreads_read()
+    else:
+        db.set_source_read(node_id)
+
+    db.close_connection()
 
     rows = get_source_items(selected_node_id)
 

@@ -115,6 +115,13 @@ class DatabaseAdapter():
     def set_source_read(self, source_id):
         self.toggle_source_read_status(source_id, 1)
 
+    def set_unreads_read(self):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+        cursor.execute('UPDATE items SET read = 1 WHERE read = 0')
+        connection.commit()
+        self.close_connection()
+
     def close_connection(self):
         self.get_connection().close()
 
