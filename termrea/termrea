@@ -158,8 +158,7 @@ def handle_input(key):
     if key == 'q':
         raise urwid.ExitMainLoop()
     elif key == 'h':
-        # @TODO: show help with available keys
-        pass
+        help()
     elif key == 'f':
         set_focused_item()
 
@@ -196,6 +195,10 @@ def set_focused_item():
     global index_with_focus
     global list_with_focus
 
+    # if help overlay is being displayed, do nothing, the widget is the overlay now
+    if type(loop.widget) == urwid.Overlay:
+        return
+
     # get from the main loop the news items list, sources list, focused item
     columns = loop.widget.get_body()[2]
     news_list = columns.widget_list[2].body
@@ -210,6 +213,63 @@ def set_focused_item():
 
     index_with_focus = selected_list.get_focus()[1] if selected_list.get_focus()[1] else 0
 
+
+def help():
+    global loop
+    global body
+
+    # body
+    body_text = urwid.Text('''
+    The available controls:
+
+    arrows  navigate
+    r       read
+    u       unread
+    enter   open on browser,
+            select source
+    f       fetch
+    q       quit
+    ''', align='left')
+    body_filler = urwid.Filler(body_text, valign='top')
+    body_padding = urwid.Padding(
+        body_filler,
+        left=1,
+        right=1
+    )
+    body = urwid.LineBox(body_padding)
+
+    # footer
+    def close(button):
+        loop.widget = body
+
+    footer = urwid.Button('OK', close)
+    footer = urwid.AttrWrap(footer, 'selectable', 'focus')
+    footer = urwid.GridFlow([footer], 6, 1, 1, 'center')
+
+    # layout
+    layout = urwid.Frame(
+        body,
+        footer=footer,
+        focus_part='footer'
+    )
+
+    body = loop.widget
+    pile = urwid.Pile([layout])
+    over = urwid.Overlay(
+        pile,
+        body,
+        align='center',
+        valign='middle',
+        width=35,
+        height=15
+    )
+
+    loop.widget = over
+
+    return layout
+
+
+body = None
 
 urwid.register_signal(UnreadButton, ['click', 'read'])
 urwid.register_signal(ReadButton, ['click', 'unread'])

@@ -56,6 +56,7 @@ termrea
 | u       | unread                              |
 | enter   | open item on browser, select source |
 | f       | fetch content fetched by liferea    |
+| h       | help                                |
 | q       | quit                                |
 
 ### Configure

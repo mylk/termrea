@@ -8,7 +8,7 @@ class SourceButton(urwid.Button):
         super(urwid.Button, self).__init__(self._label)
 
     def keypress(self, size, key):
-        if key in ('up', 'down', 'left', 'right', 'page up', 'page down', 'home', 'end', 'q', 'f'):
+        if key in ('up', 'down', 'left', 'right', 'page up', 'page down', 'home', 'end', 'q', 'h', 'f'):
             return super(urwid.Button, self).keypress(size, key)
 
         if key == 'enter':
