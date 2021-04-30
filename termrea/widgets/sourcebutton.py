@@ -14,6 +14,9 @@ class SourceButton(urwid.Button):
         if key == 'enter':
             urwid.emit_signal(self, 'click')
 
+        if key == ' ':
+            urwid.emit_signal(self, 'click_unread')
+
         if key == 'r':
             urwid.emit_signal(self, 'read')
 

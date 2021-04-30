@@ -52,10 +52,11 @@ termrea
 | Key     | Description                         |
 | :-----: | :---------------------------------- |
 | ↑ ↓ ← → | navigate                            |
-| r       | read                                |
-| u       | unread                              |
+| r       | mark as read                        |
+| u       | mark as unread                      |
 | enter   | open item on browser, select source |
-| f       | fetch content fetched by liferea    |
+| space   | show unread of select source        |
+| f       | update list                         |
 | h       | help                                |
 | q       | quit                                |
 

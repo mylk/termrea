@@ -22,6 +22,7 @@ def generate_sources_list():
     for source in sources:
         button = SourceButton(sources[source]['title'])
         urwid.connect_signal(button, 'click', source_chosen, source)
+        urwid.connect_signal(button, 'click_unread', source_chosen_unread, source)
         urwid.connect_signal(button, 'read', mark_source_as_read, source)
         sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
@@ -34,6 +35,7 @@ def generate_sources_list():
 
             button = SourceButton(title_prefix + sources[source]['sources'][subsource]['title'])
             urwid.connect_signal(button, 'click', source_chosen, subsource)
+            urwid.connect_signal(button, 'click_unread', source_chosen_unread, subsource)
             urwid.connect_signal(button, 'read', mark_source_as_read, subsource)
             sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
@@ -113,7 +115,24 @@ def mark_source_as_read(node_id):
 
 def source_chosen(node_id):
     global selected_node_id
+    global selected_filter
+
     selected_node_id = node_id
+    selected_filter = None
+
+    set_focused_item()
+
+    rows = get_source_items(node_id)
+
+    generate_interface(loop, rows)
+
+
+def source_chosen_unread(node_id):
+    global selected_node_id
+    global selected_filter
+
+    selected_node_id = node_id
+    selected_filter = 'unread'
 
     set_focused_item()
 
@@ -181,7 +200,10 @@ def get_source_items(node_id):
     db = DatabaseAdapter()
 
     if node_id and node_id != node_id_unreads:
-        rows = db.get_node_items(node_id).fetchall()
+        if selected_filter == 'unread':
+            rows = db.get_node_unread_items(node_id).fetchall()
+        else:
+            rows = db.get_node_all_items(node_id).fetchall()
     else:
         rows = db.find_unread_news().fetchall()
 
@@ -223,10 +245,11 @@ def help():
     The available controls:
 
     arrows  navigate
-    r       read
-    u       unread
+    r       mark as read
+    u       mark as unread
     enter   open on browser,
             select source
+    space   show unreads of source
     f       fetch
     q       quit
     ''', align='left')
@@ -260,7 +283,7 @@ def help():
         body,
         align='center',
         valign='middle',
-        width=35,
+        width=41,
         height=15
     )
 
@@ -273,12 +296,13 @@ body = None
 
 urwid.register_signal(UnreadButton, ['click', 'read'])
 urwid.register_signal(ReadButton, ['click', 'unread'])
-urwid.register_signal(SourceButton, ['click', 'read'])
+urwid.register_signal(SourceButton, ['click', 'click_unread', 'read'])
 
 index_with_focus = 0
 list_with_focus = 'news_list'
 node_id_unreads = next(DatabaseAdapter().get_unreads_node())['node_id']
 selected_node_id = node_id_unreads
+selected_filter = None
 
 config_adapter = ConfigAdapter()
 sources = config_adapter.get_sources()
