@@ -48,12 +48,12 @@ class DatabaseAdapter():
             )
         ''', (node_id, node_id))
 
-    def get_node_items(self, node_id, unread):
+    def get_node_items(self, node_id=None, unread_only=False, date_order='DESC'):
         connection = self.get_connection()
         cursor = connection.cursor()
 
         unread_condition = ''
-        if unread:
+        if unread_only:
             unread_condition = 'AND i.read = 0'
 
         query = '''
@@ -71,16 +71,16 @@ class DatabaseAdapter():
                 OR n.parent_id = ?
             )
             %s
-            ORDER BY date DESC
-        ''' % unread_condition
+            ORDER BY date %s
+        ''' % (unread_condition, date_order)
 
         return cursor.execute(query, (node_id, node_id))
 
     def get_node_all_items(self, node_id):
-        return self.get_node_items(node_id, False)
+        return self.get_node_items(node_id=node_id, unread_only=False, date_order='DESC')
 
     def get_node_unread_items(self, node_id):
-        return self.get_node_items(node_id, True)
+        return self.get_node_items(node_id=node_id, unread_only=True, date_order='ASC')
 
     def get_unreads_node(self):
         connection = self.get_connection()
