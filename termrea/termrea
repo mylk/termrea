@@ -67,7 +67,13 @@ def generate_news_list(rows):
 
 
 def generate_interface(loop, news_items):
-    last_update_txt = urwid.Text(datetime.now().strftime('%c'))
+    terminal_size = os.get_terminal_size()
+
+    unread_count = get_node_unread_count(selected_node_id)
+    unread_count_txt = urwid.Text('Unread: {}'.format(unread_count))
+    last_update_txt = urwid.Text('Updated: {}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), align='right')
+    columns_info = urwid.Columns([(round(terminal_size.columns / 2), unread_count_txt), last_update_txt])
+
     sources_list = generate_sources_list()
     news_list = generate_news_list(news_items)
 
@@ -86,11 +92,10 @@ def generate_interface(loop, news_items):
     elif len(selected_list.body) == index_with_focus:
         selected_list.set_focus((index_with_focus - 1))
 
-    terminal_size = os.get_terminal_size()
-    columns = urwid.Columns([(28, sources_list), (1, urwid.SolidFill(' ')), ((terminal_size.columns - 29), elements_list)])
-    columns.set_focus(selected_list)
+    columns_news = urwid.Columns([(28, sources_list), (1, urwid.SolidFill(' ')), ((terminal_size.columns - 29), elements_list)])
+    columns_news.set_focus(selected_list)
 
-    pile = urwid.Pile([last_update_txt, urwid.Divider(), ((terminal_size.lines - 2), columns)])
+    pile = urwid.Pile([columns_info, urwid.Divider(), ((terminal_size.lines - 2), columns_news)])
     widget = urwid.Filler(pile, valign='top')
 
     loop.widget = widget
@@ -234,6 +239,19 @@ def set_focused_item():
         selected_list = sources_list
 
     index_with_focus = selected_list.get_focus()[1] if selected_list.get_focus()[1] else 0
+
+
+def get_node_unread_count(node_id):
+    db = DatabaseAdapter()
+
+    if node_id and node_id == node_id_unreads:
+        rows = db.get_unread_count().fetchall()
+    else:
+        rows = db.get_node_unread_count(node_id).fetchall()
+
+    db.close_connection()
+
+    return rows[0]['unread_count']
 
 
 def help():

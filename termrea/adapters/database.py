@@ -32,12 +32,24 @@ class DatabaseAdapter():
             ORDER BY date ASC
         ''')
 
-    def get_node_unreads_count(self, node_id):
+
+    def get_unread_count(self):
         connection = self.get_connection()
         cursor = connection.cursor()
 
         return cursor.execute('''
-            SELECT COUNT(*) AS unreads_count
+            SELECT COUNT(*) AS unread_count
+            FROM items AS i
+            WHERE i.read = 0
+        ''')
+
+
+    def get_node_unread_count(self, node_id):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        return cursor.execute('''
+            SELECT COUNT(*) AS unread_count
             FROM items AS i
             INNER JOIN node AS n
             ON i.node_id = n.node_id
