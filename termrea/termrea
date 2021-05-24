@@ -49,7 +49,7 @@ def generate_news_list(rows):
 
     for row in rows:
         section_width = terminal_size.columns - 82
-        button_width = terminal_size.columns - 79
+        button_width = terminal_size.columns - 78
         title = row['title'][0:section_width] + '...' if len(row['title']) >= section_width else row['title']
         button_text = '{:<26} {:<{width}} {}'.format(row['source'], title, row['date'], width=(button_width))
 
@@ -95,7 +95,7 @@ def generate_interface(loop, news_items):
     columns_news = urwid.Columns([(28, sources_list), (1, urwid.SolidFill(' ')), ((terminal_size.columns - 29), elements_list)])
     columns_news.set_focus(selected_list)
 
-    pile = urwid.Pile([columns_info, urwid.Divider(), ((terminal_size.lines - 2), columns_news)])
+    pile = urwid.Pile([columns_info, urwid.Divider(), (terminal_size.lines, columns_news)])
     widget = urwid.Filler(pile, valign='top')
 
     loop.widget = widget

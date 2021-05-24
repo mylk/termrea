@@ -2,7 +2,7 @@ import urwid
 
 
 class UnreadButton(urwid.Button):
-    button_left = urwid.Text('·')
+    button_left = urwid.Text('· ')
     button_right = urwid.Text('')
 
     def __init__(self, label, on_press=None, user_data=None):
@@ -10,10 +10,10 @@ class UnreadButton(urwid.Button):
         super(urwid.Button, self).__init__(self._label)
 
         cols = urwid.Columns([
-            ('fixed', 1, self.button_left),
+            ('fixed', 2, self.button_left),
             self._label,
             ('fixed', 0, self.button_right)
-        ], dividechars=1)
+        ], dividechars=0)
         urwid.WidgetWrap.__init__(self, cols)
 
     def keypress(self, size, key):

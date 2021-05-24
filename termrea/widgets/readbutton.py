@@ -10,10 +10,10 @@ class ReadButton(urwid.Button):
         super(urwid.Button, self).__init__(self._label)
 
         cols = urwid.Columns([
-            ('fixed', 1, self.button_left),
+            ('fixed', 2, self.button_left),
             self._label,
             ('fixed', 0, self.button_right)
-        ], dividechars=1)
+        ], dividechars=0)
         urwid.WidgetWrap.__init__(self, cols)
 
     def keypress(self, size, key):
