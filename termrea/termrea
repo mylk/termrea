@@ -24,6 +24,7 @@ def generate_sources_list():
         urwid.connect_signal(button, 'click', source_chosen, source)
         urwid.connect_signal(button, 'click_unread', source_chosen_unread, source)
         urwid.connect_signal(button, 'read', mark_source_as_read, source)
+        urwid.connect_signal(button, 'edit', edit_source, source)
         sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
         for subsource in sources[source]['sources']:
@@ -37,6 +38,7 @@ def generate_sources_list():
             urwid.connect_signal(button, 'click', source_chosen, subsource)
             urwid.connect_signal(button, 'click_unread', source_chosen_unread, subsource)
             urwid.connect_signal(button, 'read', mark_source_as_read, subsource)
+            urwid.connect_signal(button, 'edit', edit_source, source)
             sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
     return sources_list
@@ -309,12 +311,86 @@ def help():
 
     return layout
 
+def edit_source(node_id):
+    global loop
+    global body
+
+    name = 'Ojah'
+    url = 'http://ojah.io/rss'
+    update_interval = 10
+    mark_as_read = False
+    
+    def save_source(button):
+        pass
+
+    name_txt = urwid.Text(u'Name', align='right')
+    name_edit = urwid.Edit(u'', edit_text=name)
+    name_column = urwid.Columns([(18, name_txt), (2, urwid.Divider()), name_edit])
+
+    url_txt = urwid.Text(u'URL', align='right')
+    url_edit = urwid.Edit(u'', edit_text=url)
+    url_column = urwid.Columns([(18, url_txt), (2, urwid.Divider()), url_edit])
+
+    update_interval_txt = urwid.Text(u'Update interval', align='right')
+    update_interval_edit = urwid.Edit(u'', edit_text=str(update_interval))
+    update_interval_column = urwid.Columns([(18, update_interval_txt), (2, urwid.Divider()), update_interval_edit])
+
+    mark_as_read_checkbox = urwid.CheckBox(u'Mark as read', mark_as_read)
+
+    submit_button = urwid.Button('Submit', save_source)
+
+    body_pile = urwid.Pile([
+        name_column,
+        url_column,
+        update_interval_column,
+        mark_as_read_checkbox,
+        urwid.Divider()
+    ])
+
+    # body
+    body_filler = urwid.Filler(body_pile, valign='top')
+    body_padding = urwid.Padding(
+        body_filler,
+        left=1,
+        right=1
+    )
+    body = urwid.LineBox(body_padding)
+
+    # footer
+    def close(button):
+        loop.widget = body
+
+    footer = submit_button
+    footer = urwid.AttrWrap(footer, 'selectable', 'focus')
+    footer = urwid.GridFlow([footer], 6, 1, 1, 'center')
+
+    # layout
+    layout = urwid.Frame(
+        body,
+        footer=footer,
+        focus_part='footer'
+    )
+
+    body = loop.widget
+    pile = urwid.Pile([layout])
+    over = urwid.Overlay(
+        pile,
+        body,
+        align='center',
+        valign='middle',
+        width=41,
+        height=15
+    )
+
+    loop.widget = over
+
+    return layout
 
 body = None
 
 urwid.register_signal(UnreadButton, ['click', 'read'])
 urwid.register_signal(ReadButton, ['click', 'unread'])
-urwid.register_signal(SourceButton, ['click', 'click_unread', 'read'])
+urwid.register_signal(SourceButton, ['click', 'click_unread', 'read', 'edit'])
 
 index_with_focus = 0
 list_with_focus = 'news_list'
