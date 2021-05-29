@@ -144,6 +144,20 @@ class DatabaseAdapter():
         connection.commit()
         self.close_connection()
 
+    def get_node(self, node_id):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        return cursor.execute('''
+            SELECT n.node_id,
+            n.title,
+            s.source,
+            s.update_interval
+            FROM node n
+            INNER JOIN subscription s ON n.node_id = s.node_id
+            AND n.node_id = ?
+        ''', (node_id,))
+
     def close_connection(self):
         self.get_connection().close()
 
