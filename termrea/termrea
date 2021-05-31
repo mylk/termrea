@@ -321,7 +321,13 @@ def edit_source(node_id):
     mark_as_read = bool(config_node['mark_as_read'])
 
     def save_source(button, node_id):
-        pass
+        # mark_as_read_checkbox.get_state()
+
+        db = DatabaseAdapter()
+        db.update_node(node_id, name_edit.get_edit_text(), url_edit.get_edit_text(), update_interval_edit.get_edit_text())
+        db.close_connection()
+
+        loop.widget = body
 
     name_txt = urwid.Text(u'Name', align='right')
     name_edit = urwid.Edit(u'', edit_text=node['title'])

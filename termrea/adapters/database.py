@@ -158,6 +158,26 @@ class DatabaseAdapter():
             AND n.node_id = ?
         ''', (node_id,))
 
+    def update_node(self, node_id, name, url, update_interval):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute('''
+            UPDATE node
+            SET title = ?
+            WHERE node_id = ?
+            ''', (name, node_id))
+
+        cursor.execute('''
+            UPDATE subscription
+            SET source = ?,
+            update_interval = ?
+            WHERE node_id = ?
+            ''', (url, update_interval, node_id))
+
+        connection.commit()
+        self.close_connection()
+
     def close_connection(self):
         self.get_connection().close()
 
