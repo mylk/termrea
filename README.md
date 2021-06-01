@@ -11,15 +11,15 @@ That is what made me create termrea.
 
 ### How it works
 
-This application uses two main elements of liferea:
+This application utilizes two main elements of liferea:
 
 - the configuration file `feedlist.opml` which contains the RSS feeds and their tree structure,
 - the database `liferea.db` which contains the news items.
 
 Also, currently the feed fetching mechanism of liferea is used, which means that liferea has to run  
-along  with termrea. I prefer to run it on a [framebuffer](https://github.com/mylk/tools/blob/master/liferea-xvfb.sh), instead of the actual X session.
+along with termrea. I prefer to run it on a [framebuffer](https://github.com/mylk/tools/blob/master/liferea-xvfb.sh), instead of the actual X session.
 
-Last but not least, currently to manage the RSS feeds (create, update, delete) you have to use liferea.
+Last but not least, currently to manage the RSS feeds (create and delete only) you have to use liferea.
 
 What termrea does by its own:
 
@@ -27,6 +27,7 @@ What termrea does by its own:
 - present the feed sources and navigate through them,
 - toggle news items between read / unread,
 - mark sources and groups of sources as read,
+- edit sources,
 - and, of course open news items to your browser :-)
 
 ### The goal
@@ -57,6 +58,7 @@ termrea
 | enter   | open item on browser, select source |
 | space   | show unread of select source        |
 | f       | update list                         |
+| e       | edit source                         |
 | h       | help                                |
 | q       | quit                                |
 

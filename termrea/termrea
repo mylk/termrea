@@ -271,6 +271,7 @@ def help():
             select source
     space   show unreads of source
     f       fetch
+    e       edit source
     q       quit
     ''', align='left')
     body_filler = urwid.Filler(body_text, valign='top')
@@ -304,7 +305,7 @@ def help():
         align='center',
         valign='middle',
         width=41,
-        height=15
+        height=16
     )
 
     loop.widget = over
@@ -321,13 +322,18 @@ def edit_source(node_id):
     mark_as_read = bool(config_node['mark_as_read'])
 
     def save_source(button, node_id):
-        # mark_as_read_checkbox.get_state()
+        global sources
 
         db = DatabaseAdapter()
         db.update_node(node_id, name_edit.get_edit_text(), url_edit.get_edit_text(), update_interval_edit.get_edit_text())
         db.close_connection()
 
-        loop.widget = body
+        config_adapter.update_source(node_id, name_edit.get_edit_text(), url_edit.get_edit_text(), update_interval_edit.get_edit_text(), mark_as_read_checkbox.get_state())
+        sources = config_adapter.get_sources()
+
+        set_focused_item()
+        rows = get_source_items(selected_node_id)
+        generate_interface(loop, rows)
 
     name_txt = urwid.Text(u'Name', align='right')
     name_edit = urwid.Edit(u'', edit_text=node['title'])

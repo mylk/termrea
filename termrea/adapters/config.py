@@ -43,3 +43,27 @@ class ConfigAdapter():
 
         return None
 
+    def update_source(self, node_id, name, url, update_interval, mark_as_read):
+        tree = xml.parse(os.path.expanduser(config.CONFIG_PATH))
+        root = tree.getroot()
+
+        for outline in root.findall('./body/'):
+            if outline.attrib['id'] == node_id:
+                outline.set('title', name)
+                outline.set('text', name)
+                outline.set('xmlUrl', url)
+                outline.set('htmlUrl', url)
+                outline.set('updateInterval', update_interval)
+                outline.set('markAsRead', str(mark_as_read).lower())
+
+            for source in outline.findall('./'):
+                if source.attrib['type'] in ['rss', 'atom'] and source.attrib['id'] == node_id:
+                    source.set('title', name)
+                    source.set('text', name)
+                    source.set('xmlUrl', url)
+                    source.set('htmlUrl', url)
+                    source.set('updateInterval', update_interval)
+                    source.set('markAsRead', str(mark_as_read).lower())
+
+        tree.write(os.path.expanduser(config.CONFIG_PATH), xml_declaration=True, encoding='utf-8')
+
