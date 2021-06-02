@@ -405,18 +405,67 @@ def edit_source(node_id):
     return layout
 
 def delete_source(node_id):
-    global sources
+    global loop
+    global body
 
     db = DatabaseAdapter()
-    db.delete_node(node_id)
+    node = next(db.get_node(node_id))
     db.close_connection()
 
-    config_adapter.delete_source(node_id)
-    sources = config_adapter.get_sources()
+    # body
+    body_text = urwid.Text('Are you sure you want to delete source "{}"?'.format(node['title']), align='left')
+    body_filler = urwid.Filler(body_text, valign='top')
+    body_padding = urwid.Padding(
+        body_filler,
+        left=1,
+        right=1
+    )
+    body = urwid.LineBox(body_padding)
 
-    set_focused_item()
-    rows = get_source_items(selected_node_id)
-    generate_interface(loop, rows)
+    # footer
+    def delete(button, node_id):
+        global sources
+
+        db = DatabaseAdapter()
+        db.delete_node(node_id)
+        db.close_connection()
+
+        config_adapter.delete_source(node_id)
+
+        sources = config_adapter.get_sources()
+        set_focused_item()
+        rows = get_source_items(selected_node_id)
+        generate_interface(loop, rows)
+
+    def close(button):
+        loop.widget = body
+
+    button_yes = urwid.Button('Yes')
+    urwid.connect_signal(button_yes, 'click', delete, node_id)
+    button_no = urwid.Button('No', close)
+    footer = urwid.GridFlow([button_yes, button_no], 6, 1, 1, 'center')
+
+    # layout
+    layout = urwid.Frame(
+        body,
+        footer=footer,
+        focus_part='footer'
+    )
+
+    body = loop.widget
+    pile = urwid.Pile([layout])
+    over = urwid.Overlay(
+        pile,
+        body,
+        align='center',
+        valign='middle',
+        width=41,
+        height=7
+    )
+
+    loop.widget = over
+
+    return layout
 
 body = None
 
