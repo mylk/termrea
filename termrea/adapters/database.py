@@ -178,6 +178,16 @@ class DatabaseAdapter():
         connection.commit()
         self.close_connection()
 
+    def delete_node(self, node_id):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute('DELETE FROM node WHERE node_id = ?', (node_id,))
+        cursor.execute('DELETE FROM subscription WHERE node_id = ?', (node_id,))
+
+        connection.commit()
+        self.close_connection()
+
     def close_connection(self):
         self.get_connection().close()
 

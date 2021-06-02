@@ -23,3 +23,6 @@ class SourceButton(urwid.Button):
         if key == 'e':
             urwid.emit_signal(self, 'edit')
 
+        if key == 'd':
+            urwid.emit_signal(self, 'delete')
+

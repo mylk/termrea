@@ -19,7 +19,7 @@ This application utilizes two main elements of liferea:
 Also, currently the feed fetching mechanism of liferea is used, which means that liferea has to run  
 along with termrea. I prefer to run it on a [framebuffer](https://github.com/mylk/tools/blob/master/liferea-xvfb.sh), instead of the actual X session.
 
-Last but not least, currently to manage the RSS feeds (create and delete only) you have to use liferea.
+Last but not least, currently to manage the RSS feeds (create only) you have to use liferea.
 
 What termrea does by its own:
 
@@ -28,6 +28,7 @@ What termrea does by its own:
 - toggle news items between read / unread,
 - mark sources and groups of sources as read,
 - edit sources,
+- delete sources,
 - and, of course open news items to your browser :-)
 
 ### The goal
@@ -59,6 +60,7 @@ termrea
 | space   | show unread of select source        |
 | f       | update list                         |
 | e       | edit source                         |
+| d       | delete source                       |
 | h       | help                                |
 | q       | quit                                |
 

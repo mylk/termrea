@@ -25,6 +25,7 @@ def generate_sources_list():
         urwid.connect_signal(button, 'click_unread', source_chosen_unread, source)
         urwid.connect_signal(button, 'read', mark_source_as_read, source)
         urwid.connect_signal(button, 'edit', edit_source, source)
+        urwid.connect_signal(button, 'delete', delete_source, source)
         sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
         for subsource in sources[source]['sources']:
@@ -39,6 +40,7 @@ def generate_sources_list():
             urwid.connect_signal(button, 'click_unread', source_chosen_unread, subsource)
             urwid.connect_signal(button, 'read', mark_source_as_read, subsource)
             urwid.connect_signal(button, 'edit', edit_source, subsource)
+            urwid.connect_signal(button, 'delete', delete_source, subsource)
             sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
     return sources_list
@@ -272,6 +274,7 @@ def help():
     space   show unreads of source
     f       fetch
     e       edit source
+    d       delete source
     q       quit
     ''', align='left')
     body_filler = urwid.Filler(body_text, valign='top')
@@ -305,7 +308,7 @@ def help():
         align='center',
         valign='middle',
         width=41,
-        height=16
+        height=17
     )
 
     loop.widget = over
@@ -401,11 +404,25 @@ def edit_source(node_id):
 
     return layout
 
+def delete_source(node_id):
+    global sources
+
+    db = DatabaseAdapter()
+    db.delete_node(node_id)
+    db.close_connection()
+
+    config_adapter.delete_source(node_id)
+    sources = config_adapter.get_sources()
+
+    set_focused_item()
+    rows = get_source_items(selected_node_id)
+    generate_interface(loop, rows)
+
 body = None
 
 urwid.register_signal(UnreadButton, ['click', 'read'])
 urwid.register_signal(ReadButton, ['click', 'unread'])
-urwid.register_signal(SourceButton, ['click', 'click_unread', 'read', 'edit'])
+urwid.register_signal(SourceButton, ['click', 'click_unread', 'read', 'edit', 'delete'])
 
 index_with_focus = 0
 list_with_focus = 'news_list'
@@ -424,3 +441,4 @@ rows = get_source_items(node_id_unreads)
 generate_interface(loop, rows)
 
 loop.run()
+

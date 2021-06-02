@@ -55,6 +55,7 @@ class ConfigAdapter():
                 outline.set('htmlUrl', url)
                 outline.set('updateInterval', update_interval)
                 outline.set('markAsRead', str(mark_as_read).lower())
+                break
 
             for source in outline.findall('./'):
                 if source.attrib['type'] in ['rss', 'atom'] and source.attrib['id'] == node_id:
@@ -64,6 +65,23 @@ class ConfigAdapter():
                     source.set('htmlUrl', url)
                     source.set('updateInterval', update_interval)
                     source.set('markAsRead', str(mark_as_read).lower())
+                    break
+
+        tree.write(os.path.expanduser(config.CONFIG_PATH), xml_declaration=True, encoding='utf-8')
+
+    def delete_source(self, node_id):
+        tree = xml.parse(os.path.expanduser(config.CONFIG_PATH))
+        root = tree.getroot()
+
+        for outline in root.findall('./body/'):
+            if outline.attrib['id'] == node_id:
+                root.remove(outline)
+                break
+
+            for source in outline.findall('./'):
+                if source.attrib['type'] in ['rss', 'atom'] and source.attrib['id'] == node_id:
+                    outline.remove(source)
+                    break
 
         tree.write(os.path.expanduser(config.CONFIG_PATH), xml_declaration=True, encoding='utf-8')
 
