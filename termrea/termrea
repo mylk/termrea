@@ -322,7 +322,7 @@ def edit_source(node_id):
     db = DatabaseAdapter()
     node = next(db.get_node(node_id))
     config_node = config_adapter.get_source(node_id)
-    mark_as_read = bool(config_node['mark_as_read'])
+    mark_as_read = False if config_node['mark_as_read'] == 'false' else True
 
     def save_source(button, node_id):
         global sources

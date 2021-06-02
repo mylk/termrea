@@ -11,7 +11,7 @@ class ConfigAdapter():
 
         sources = {}
         for outline in root.findall('./body/'):
-            mark_as_read = outline.attrib['markAsRead'] if 'markAsRead' in outline.attrib else False
+            mark_as_read = outline.attrib['markAsRead'] if 'markAsRead' in outline.attrib else 'false'
 
             sources[outline.attrib['id']] = {
                 'title': outline.attrib['title'],
@@ -20,7 +20,7 @@ class ConfigAdapter():
             }
 
             for source in outline.findall('./'):
-                mark_as_read = source.attrib['markAsRead'] if 'markAsRead' in source.attrib else False
+                mark_as_read = source.attrib['markAsRead'] if 'markAsRead' in source.attrib else 'false'
 
                 if source.attrib['type'] in ['rss', 'atom']:
                     sources[outline.attrib['id']]['sources'][source.attrib['id']] = {
