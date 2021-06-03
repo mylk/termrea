@@ -339,27 +339,27 @@ def edit_source(node_id):
         generate_interface(loop, rows)
 
     name_txt = urwid.Text(u'Name', align='right')
-    name_edit = urwid.Edit(u'', edit_text=node['title'])
+    name_edit = urwid.Edit(u'', edit_text=node['title'], wrap='clip')
     name_column = urwid.Columns([(18, name_txt), (2, urwid.Divider()), name_edit])
 
     url_txt = urwid.Text(u'URL', align='right')
-    url_edit = urwid.Edit(u'', edit_text=node['source'])
+    url_edit = urwid.Edit(u'', edit_text=node['source'], wrap='clip')
     url_column = urwid.Columns([(18, url_txt), (2, urwid.Divider()), url_edit])
 
     update_interval_txt = urwid.Text(u'Update interval', align='right')
     update_interval_edit = urwid.Edit(u'', edit_text=str(node['update_interval']))
     update_interval_column = urwid.Columns([(18, update_interval_txt), (2, urwid.Divider()), update_interval_edit])
 
-    mark_as_read_checkbox = urwid.CheckBox(u'Mark as read', mark_as_read)
-
-    submit_button = urwid.Button('Submit')
-    urwid.connect_signal(submit_button, 'click', save_source, node_id)
+    mark_as_read_txt = urwid.Text(u'Mark as read', align='right')
+    mark_as_read_checkbox = urwid.CheckBox(u'', mark_as_read)
+    mark_as_read_column = urwid.Columns([(18, mark_as_read_txt), (2, urwid.Divider()), mark_as_read_checkbox])
 
     body_pile = urwid.Pile([
+        urwid.Divider(),
         name_column,
         url_column,
         update_interval_column,
-        mark_as_read_checkbox,
+        mark_as_read_column,
         urwid.Divider()
     ])
 
@@ -376,9 +376,11 @@ def edit_source(node_id):
     def close(button):
         loop.widget = body
 
-    footer = submit_button
-    footer = urwid.AttrWrap(footer, 'selectable', 'focus')
-    footer = urwid.GridFlow([footer], 6, 1, 1, 'center')
+    submit_button = urwid.Button('Submit')
+    urwid.connect_signal(submit_button, 'click', save_source, node_id)
+    cancel_button = urwid.Button('Cancel')
+    urwid.connect_signal(cancel_button, 'click', close)
+    footer = urwid.GridFlow([submit_button, cancel_button], 10, 1, 1, 'center')
 
     # layout
     layout = urwid.Frame(
@@ -394,8 +396,8 @@ def edit_source(node_id):
         body,
         align='center',
         valign='middle',
-        width=100,
-        height=15
+        width=60,
+        height=12
     )
 
     loop.widget = over
@@ -413,8 +415,11 @@ def delete_source(node_id):
     db.close_connection()
 
     # body
-    body_text = urwid.Text('Are you sure you want to delete source "{}"?'.format(node['title']), align='left')
-    body_filler = urwid.Filler(body_text, valign='top')
+    body_pile = urwid.Pile([
+        urwid.Divider(),
+        urwid.Text('Are you sure you want to delete source "{}"?'.format(node['title']), align='center')
+    ])
+    body_filler = urwid.Filler(body_pile, valign='top')
     body_padding = urwid.Padding(
         body_filler,
         left=1,
@@ -443,7 +448,7 @@ def delete_source(node_id):
     button_yes = urwid.Button('Yes')
     urwid.connect_signal(button_yes, 'click', delete, node_id)
     button_no = urwid.Button('No', close)
-    footer = urwid.GridFlow([button_yes, button_no], 6, 1, 1, 'center')
+    footer = urwid.GridFlow([button_yes, button_no], 7, 1, 1, 'center')
 
     # layout
     layout = urwid.Frame(
