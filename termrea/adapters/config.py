@@ -85,3 +85,59 @@ class ConfigAdapter():
 
         tree.write(os.path.expanduser(config.CONFIG_PATH), xml_declaration=True, encoding='utf-8')
 
+    def add_source(self, node_id, new_node_id, name, url, update_interval, mark_as_read):
+        tree = xml.parse(os.path.expanduser(config.CONFIG_PATH))
+        root = tree.getroot()
+
+        broken = False
+        position = 1
+        body = root.findall('./body/')
+        for outline in body:
+            if broken:
+                break
+
+            if outline.attrib['id'] == node_id:
+                #item = etree.Element('Outline')
+                item = xml.Element('outline')
+                item.attrib['id'] = new_node_id
+                item.attrib['title'] = name
+                item.attrib['text'] = name
+                item.attrib['description'] = name
+                # @TODO: change this
+                item.attrib['type'] = 'atom'
+                item.attrib['sortColumn'] = 'time'
+                item.attrib['xmlUrl'] = url
+                # @TODO: change this
+                item.attrib['htmlUrl'] = url
+                item.attrib['updateInterval'] = update_interval
+                item.attrib['markAsRead'] = str(mark_as_read).lower()
+                item.attrib['collapsed'] = 'true'
+                outline.insert(position, item)
+                break
+            position += 1
+
+            position = 1
+            for source in outline.findall('./'):
+                if source.attrib['type'] in ['rss', 'atom'] and source.attrib['id'] == node_id:
+                    #item = etree.Element('Outline')
+                    item = xml.Element('outline')
+                    item.attrib['id'] = new_node_id
+                    item.attrib['title'] = name
+                    item.attrib['text'] = name
+                    item.attrib['description'] = name
+                    # @TODO: change this
+                    item.attrib['type'] = 'atom'
+                    item.attrib['sortColumn'] = 'time'
+                    item.attrib['xmlUrl'] = url
+                    # @TODO: change this
+                    item.attrib['htmlUrl'] = url
+                    item.attrib['updateInterval'] = update_interval
+                    item.attrib['markAsRead'] = str(mark_as_read).lower()
+                    item.attrib['collapsed'] = 'true'
+                    outline.insert(position, item)
+                    broken = True
+                    break
+                position += 1
+
+        tree.write(os.path.expanduser(config.CONFIG_PATH), xml_declaration=True)
+

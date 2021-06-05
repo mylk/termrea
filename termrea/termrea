@@ -2,6 +2,8 @@
 
 from datetime import datetime
 import os
+import random
+import string
 import urwid
 import webbrowser
 
@@ -26,6 +28,7 @@ def generate_sources_list():
         urwid.connect_signal(button, 'read', mark_source_as_read, source)
         urwid.connect_signal(button, 'edit', edit_source, source)
         urwid.connect_signal(button, 'delete', delete_source, source)
+        urwid.connect_signal(button, 'add', add_source, source)
         sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
         for subsource in sources[source]['sources']:
@@ -41,6 +44,7 @@ def generate_sources_list():
             urwid.connect_signal(button, 'read', mark_source_as_read, subsource)
             urwid.connect_signal(button, 'edit', edit_source, subsource)
             urwid.connect_signal(button, 'delete', delete_source, subsource)
+            urwid.connect_signal(button, 'add', add_source, subsource)
             sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
     return sources_list
@@ -271,8 +275,9 @@ def help():
     u       mark as unread
     enter   open on browser,
             select source
-    space   show unreads of source
+    space   show unread of source
     f       fetch
+    a       add source
     e       edit source
     d       delete source
     q       quit
@@ -308,7 +313,7 @@ def help():
         align='center',
         valign='middle',
         width=41,
-        height=17
+        height=18
     )
 
     loop.widget = over
@@ -472,11 +477,105 @@ def delete_source(node_id):
 
     return layout
 
+def add_source(node_id):
+    global loop
+    global body
+
+    db = DatabaseAdapter()
+    node = next(db.get_node(node_id))
+    config_node = config_adapter.get_source(node_id)
+    mark_as_read = False if config_node['mark_as_read'] == 'false' else True
+
+    # @TODO: check if exists
+    new_node_id = ''.join(random.choices(string.ascii_lowercase, k=7))
+    parent_node_id = node['parent_id']
+    db.close_connection()
+
+    def save_source(button):
+        global sources
+
+        db = DatabaseAdapter()
+        new_node = db.add_source(parent_node_id, new_node_id, name_edit.get_edit_text(), url_edit.get_edit_text(), update_interval_edit.get_edit_text())
+        db.close_connection()
+
+        config_adapter.add_source(node_id, new_node_id, name_edit.get_edit_text(), url_edit.get_edit_text(), update_interval_edit.get_edit_text(), mark_as_read_checkbox.get_state())
+        sources = config_adapter.get_sources()
+
+        set_focused_item()
+        rows = get_source_items(selected_node_id)
+        generate_interface(loop, rows)
+
+    name_txt = urwid.Text(u'Name', align='right')
+    name_edit = urwid.Edit(u'', wrap='clip')
+    name_column = urwid.Columns([(18, name_txt), (2, urwid.Divider()), name_edit])
+
+    url_txt = urwid.Text(u'URL', align='right')
+    url_edit = urwid.Edit(u'', wrap='clip')
+    url_column = urwid.Columns([(18, url_txt), (2, urwid.Divider()), url_edit])
+
+    update_interval_txt = urwid.Text(u'Update interval', align='right')
+    update_interval_edit = urwid.Edit(u'')
+    update_interval_column = urwid.Columns([(18, update_interval_txt), (2, urwid.Divider()), update_interval_edit])
+
+    mark_as_read_txt = urwid.Text(u'Mark as read', align='right')
+    mark_as_read_checkbox = urwid.CheckBox(u'')
+    mark_as_read_column = urwid.Columns([(18, mark_as_read_txt), (2, urwid.Divider()), mark_as_read_checkbox])
+
+    body_pile = urwid.Pile([
+        urwid.Divider(),
+        name_column,
+        url_column,
+        update_interval_column,
+        mark_as_read_column,
+        urwid.Divider()
+    ])
+
+    # body
+    body_filler = urwid.Filler(body_pile, valign='top')
+    body_padding = urwid.Padding(
+        body_filler,
+        left=1,
+        right=1
+    )
+    body = urwid.LineBox(body_padding)
+
+    # footer
+    def close(button):
+        loop.widget = body
+
+    submit_button = urwid.Button('Submit')
+    urwid.connect_signal(submit_button, 'click', save_source)
+    cancel_button = urwid.Button('Cancel')
+    urwid.connect_signal(cancel_button, 'click', close)
+    footer = urwid.GridFlow([submit_button, cancel_button], 10, 1, 1, 'center')
+
+    # layout
+    layout = urwid.Frame(
+        body,
+        footer=footer,
+        focus_part='footer'
+    )
+
+    body = loop.widget
+    pile = urwid.Pile([layout])
+    over = urwid.Overlay(
+        pile,
+        body,
+        align='center',
+        valign='middle',
+        width=60,
+        height=12
+    )
+
+    loop.widget = over
+
+    return layout
+
 body = None
 
 urwid.register_signal(UnreadButton, ['click', 'read'])
 urwid.register_signal(ReadButton, ['click', 'unread'])
-urwid.register_signal(SourceButton, ['click', 'click_unread', 'read', 'edit', 'delete'])
+urwid.register_signal(SourceButton, ['click', 'click_unread', 'read', 'edit', 'delete', 'add'])
 
 index_with_focus = 0
 list_with_focus = 'news_list'

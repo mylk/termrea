@@ -133,7 +133,8 @@ class DatabaseAdapter():
                     OR n.parent_id = ?
                 )
                 AND i.read = 0
-            )''', (source_id, source_id))
+            )
+        ''', (source_id, source_id))
         connection.commit()
         self.close_connection()
 
@@ -150,6 +151,7 @@ class DatabaseAdapter():
 
         return cursor.execute('''
             SELECT n.node_id,
+            n.parent_id,
             n.title,
             s.source,
             s.update_interval
@@ -166,14 +168,35 @@ class DatabaseAdapter():
             UPDATE node
             SET title = ?
             WHERE node_id = ?
-            ''', (name, node_id))
+        ''', (name, node_id))
 
         cursor.execute('''
             UPDATE subscription
             SET source = ?,
             update_interval = ?
             WHERE node_id = ?
-            ''', (url, update_interval, node_id))
+        ''', (url, update_interval, node_id))
+
+        connection.commit()
+        self.close_connection()
+
+    def add_source(self, parent_node_id, new_node_id, name, url, update_interval):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute('''
+            INSERT INTO node
+            (node_id, parent_id, title, type, expanded, view_mode, sort_column, sort_reversed)
+            VALUES
+            (?, ?, ?, 'atom', 0, 3, 'time', 1)
+        ''', (new_node_id, parent_node_id, name))
+
+        cursor.execute('''
+            INSERT INTO subscription
+            (node_id, source, orig_source, filter_cmd, update_interval, default_interval, discontinued, available)
+            VALUES
+            (?, ?, ?, '', ?, -1, 0, 0)
+        ''', (new_node_id, url, url, update_interval))
 
         connection.commit()
         self.close_connection()

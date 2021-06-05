@@ -1,6 +1,6 @@
 ## termrea
 
-A terminal RSS reader heavily based on `liferea`.
+A terminal RSS reader based on `liferea`.
 
 ![](docs/images/screenshot.png)
 
@@ -19,21 +19,18 @@ This application utilizes two main elements of liferea:
 Also, currently the feed fetching mechanism of liferea is used, which means that liferea has to run  
 along with termrea. I prefer to run it on a [framebuffer](https://github.com/mylk/tools/blob/master/liferea-xvfb.sh), instead of the actual X session.
 
-Last but not least, currently to manage the RSS feeds (create only) you have to use liferea.
-
 What termrea does by its own:
 
 - present the news items and navigate through them,
 - present the feed sources and navigate through them,
 - toggle news items between read / unread,
 - mark sources and groups of sources as read,
-- edit sources,
-- delete sources,
+- add, edit and delete sources,
 - and, of course open news items to your browser :-)
 
 ### The goal
 
-The goal for termrea is to have its own feed fetching and source manipulation mechanisms.  
+The goal for termrea is to have its own feed fetching mechanism.  
 The other shared aspects (the configuration file and the database), I think are okay and I like the  
 idea of the applications being somewhat interchangeable.
 
@@ -57,8 +54,9 @@ termrea
 | r       | mark as read                        |
 | u       | mark as unread                      |
 | enter   | open item on browser, select source |
-| space   | show unread of select source        |
+| space   | show unread of selected source      |
 | f       | update list                         |
+| a       | add source                          |
 | e       | edit source                         |
 | d       | delete source                       |
 | h       | help                                |
