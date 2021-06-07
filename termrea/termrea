@@ -324,6 +324,9 @@ def edit_source(node_id):
     global loop
     global body
 
+    if node_id == node_id_unreads:
+        return
+
     db = DatabaseAdapter()
     node = next(db.get_node(node_id))
     config_node = config_adapter.get_source(node_id)
@@ -415,6 +418,9 @@ def delete_source(node_id):
     global loop
     global body
 
+    if node_id == node_id_unreads:
+        return
+
     db = DatabaseAdapter()
     node = next(db.get_node(node_id))
     db.close_connection()
@@ -480,6 +486,9 @@ def delete_source(node_id):
 def add_source(node_id):
     global loop
     global body
+
+    if node_id == node_id_unreads:
+        return
 
     db = DatabaseAdapter()
     node = next(db.get_node(node_id))
