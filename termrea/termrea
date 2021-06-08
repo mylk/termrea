@@ -494,9 +494,7 @@ def add_source(node_id):
     node = next(db.get_node(node_id))
     config_node = config_adapter.get_source(node_id)
     mark_as_read = False if config_node['mark_as_read'] == 'false' else True
-
-    # @TODO: check if exists
-    new_node_id = ''.join(random.choices(string.ascii_lowercase, k=7))
+    new_node_id = generate_node_id()
     parent_node_id = node['parent_id']
     db.close_connection()
 
@@ -579,6 +577,18 @@ def add_source(node_id):
     loop.widget = over
 
     return layout
+
+def generate_node_id():
+    db = DatabaseAdapter()
+
+    node = ''
+    while node is not None:
+        new_node_id = ''.join(random.choices(string.ascii_lowercase, k=7))
+        node = db.get_node(new_node_id).fetchone()
+
+    db.close_connection()
+
+    return new_node_id
 
 body = None
 
