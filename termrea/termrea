@@ -4,8 +4,10 @@ from datetime import datetime
 import os
 import random
 import string
+import urllib.request
 import urwid
 import webbrowser
+import xml.etree.ElementTree as xml
 
 from adapters.config import ConfigAdapter
 from adapters.database import DatabaseAdapter
@@ -483,29 +485,32 @@ def delete_source(node_id):
 
     return layout
 
-def add_source(node_id):
+def add_source(sibling_node_id):
     global loop
     global body
 
-    if node_id == node_id_unreads:
+    if sibling_node_id == node_id_unreads:
         return
 
     db = DatabaseAdapter()
-    node = next(db.get_node(node_id))
-    config_node = config_adapter.get_source(node_id)
+    sibling_node = next(db.get_node(sibling_node_id))
+    config_node = config_adapter.get_source(sibling_node_id)
     mark_as_read = False if config_node['mark_as_read'] == 'false' else True
     new_node_id = generate_node_id()
-    parent_node_id = node['parent_id']
+    parent_node_id = sibling_node['parent_id']
     db.close_connection()
 
     def save_source(button):
         global sources
 
+        url = url_edit.get_edit_text()
+        feed_type = detect_feed_type(url)
+
         db = DatabaseAdapter()
-        new_node = db.add_source(parent_node_id, new_node_id, name_edit.get_edit_text(), url_edit.get_edit_text(), update_interval_edit.get_edit_text())
+        new_node = db.add_source(new_node_id, parent_node_id, name_edit.get_edit_text(), feed_type, url, update_interval_edit.get_edit_text())
         db.close_connection()
 
-        config_adapter.add_source(node_id, new_node_id, name_edit.get_edit_text(), url_edit.get_edit_text(), update_interval_edit.get_edit_text(), mark_as_read_checkbox.get_state())
+        config_adapter.add_source(sibling_node_id, new_node_id, name_edit.get_edit_text(), feed_type, url, update_interval_edit.get_edit_text(), mark_as_read_checkbox.get_state())
         sources = config_adapter.get_sources()
 
         set_focused_item()
@@ -589,6 +594,16 @@ def generate_node_id():
     db.close_connection()
 
     return new_node_id
+
+def detect_feed_type(url):
+    data = urllib.request.urlopen(url).read()
+    root = xml.fromstring(data)
+
+    source_type = 'atom'
+    if root.tag == 'rss':
+        source_type = 'rss'
+
+    return source_type
 
 body = None
 

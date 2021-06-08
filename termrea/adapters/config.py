@@ -85,7 +85,7 @@ class ConfigAdapter():
 
         tree.write(os.path.expanduser(config.CONFIG_PATH), xml_declaration=True, encoding='utf-8')
 
-    def add_source(self, node_id, new_node_id, name, url, update_interval, mark_as_read):
+    def add_source(self, sibling_node_id, node_id, name, feed_type, url, update_interval, mark_as_read):
         tree = xml.parse(os.path.expanduser(config.CONFIG_PATH))
         root = tree.getroot()
 
@@ -96,15 +96,13 @@ class ConfigAdapter():
             if broken:
                 break
 
-            if outline.attrib['id'] == node_id:
-                #item = etree.Element('Outline')
+            if outline.attrib['id'] == sibling_node_id:
                 item = xml.Element('outline')
-                item.attrib['id'] = new_node_id
+                item.attrib['id'] = node_id
                 item.attrib['title'] = name
                 item.attrib['text'] = name
                 item.attrib['description'] = name
-                # @TODO: change this
-                item.attrib['type'] = 'atom'
+                item.attrib['type'] = feed_type
                 item.attrib['sortColumn'] = 'time'
                 item.attrib['xmlUrl'] = url
                 # @TODO: change this
@@ -118,15 +116,13 @@ class ConfigAdapter():
 
             position = 1
             for source in outline.findall('./'):
-                if source.attrib['type'] in ['rss', 'atom'] and source.attrib['id'] == node_id:
-                    #item = etree.Element('Outline')
+                if source.attrib['type'] in ['rss', 'atom'] and source.attrib['id'] == sibling_node_id:
                     item = xml.Element('outline')
-                    item.attrib['id'] = new_node_id
+                    item.attrib['id'] = node_id
                     item.attrib['title'] = name
                     item.attrib['text'] = name
                     item.attrib['description'] = name
-                    # @TODO: change this
-                    item.attrib['type'] = 'atom'
+                    item.attrib['type'] = feed_type
                     item.attrib['sortColumn'] = 'time'
                     item.attrib['xmlUrl'] = url
                     # @TODO: change this

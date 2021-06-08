@@ -180,7 +180,7 @@ class DatabaseAdapter():
         connection.commit()
         self.close_connection()
 
-    def add_source(self, parent_node_id, new_node_id, name, url, update_interval):
+    def add_source(self, node_id, parent_node_id, name, feed_type, url, update_interval):
         connection = self.get_connection()
         cursor = connection.cursor()
 
@@ -188,15 +188,15 @@ class DatabaseAdapter():
             INSERT INTO node
             (node_id, parent_id, title, type, expanded, view_mode, sort_column, sort_reversed)
             VALUES
-            (?, ?, ?, 'atom', 0, 3, 'time', 1)
-        ''', (new_node_id, parent_node_id, name))
+            (?, ?, ?, ?, 0, 3, 'time', 1)
+        ''', (node_id, parent_node_id, name, feed_type))
 
         cursor.execute('''
             INSERT INTO subscription
             (node_id, source, orig_source, filter_cmd, update_interval, default_interval, discontinued, available)
             VALUES
             (?, ?, ?, '', ?, -1, 0, 0)
-        ''', (new_node_id, url, url, update_interval))
+        ''', (node_id, url, url, update_interval))
 
         connection.commit()
         self.close_connection()
