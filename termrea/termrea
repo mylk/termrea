@@ -505,12 +505,13 @@ def add_source(sibling_node_id):
 
         url = url_edit.get_edit_text()
         feed_type = detect_feed_type(url)
+        link = get_link(url, feed_type)
 
         db = DatabaseAdapter()
         new_node = db.add_source(new_node_id, parent_node_id, name_edit.get_edit_text(), feed_type, url, update_interval_edit.get_edit_text())
         db.close_connection()
 
-        config_adapter.add_source(sibling_node_id, new_node_id, name_edit.get_edit_text(), feed_type, url, update_interval_edit.get_edit_text(), mark_as_read_checkbox.get_state())
+        config_adapter.add_source(sibling_node_id, new_node_id, name_edit.get_edit_text(), feed_type, url, link, update_interval_edit.get_edit_text(), mark_as_read_checkbox.get_state())
         sources = config_adapter.get_sources()
 
         set_focused_item()
@@ -604,6 +605,22 @@ def detect_feed_type(url):
         source_type = 'rss'
 
     return source_type
+
+def get_link(url, feed_type):
+    data = urllib.request.urlopen(url).read()
+    root = xml.fromstring(data)
+
+    if feed_type == 'rss':
+        link = root.find('./channel/link')
+
+        return link.text
+    elif feed_type == 'atom':
+        links = root.findall('{http://www.w3.org/2005/Atom}link')
+        for link in links:
+            if not 'rel' in link.attrib or link.attrib['rel'] != 'self':
+                return link.attrib['href']
+
+    return None
 
 body = None
 

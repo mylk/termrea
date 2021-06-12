@@ -85,7 +85,7 @@ class ConfigAdapter():
 
         tree.write(os.path.expanduser(config.CONFIG_PATH), xml_declaration=True, encoding='utf-8')
 
-    def add_source(self, sibling_node_id, node_id, name, feed_type, url, update_interval, mark_as_read):
+    def add_source(self, sibling_node_id, node_id, name, feed_type, url, html_url, update_interval, mark_as_read):
         tree = xml.parse(os.path.expanduser(config.CONFIG_PATH))
         root = tree.getroot()
 
@@ -105,8 +105,7 @@ class ConfigAdapter():
                 item.attrib['type'] = feed_type
                 item.attrib['sortColumn'] = 'time'
                 item.attrib['xmlUrl'] = url
-                # @TODO: change this
-                item.attrib['htmlUrl'] = url
+                item.attrib['htmlUrl'] = html_url
                 item.attrib['updateInterval'] = update_interval
                 item.attrib['markAsRead'] = str(mark_as_read).lower()
                 item.attrib['collapsed'] = 'true'
@@ -125,8 +124,7 @@ class ConfigAdapter():
                     item.attrib['type'] = feed_type
                     item.attrib['sortColumn'] = 'time'
                     item.attrib['xmlUrl'] = url
-                    # @TODO: change this
-                    item.attrib['htmlUrl'] = url
+                    item.attrib['htmlUrl'] = html_url
                     item.attrib['updateInterval'] = update_interval
                     item.attrib['markAsRead'] = str(mark_as_read).lower()
                     item.attrib['collapsed'] = 'true'
