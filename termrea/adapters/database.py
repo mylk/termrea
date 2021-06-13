@@ -213,4 +213,5 @@ class DatabaseAdapter():
 
     def close_connection(self):
         self.get_connection().close()
+        self.connection = None
 
