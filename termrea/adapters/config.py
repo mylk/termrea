@@ -97,18 +97,7 @@ class ConfigAdapter():
                 break
 
             if outline.attrib['id'] == sibling_node_id:
-                item = xml.Element('outline')
-                item.attrib['id'] = node_id
-                item.attrib['title'] = name
-                item.attrib['text'] = name
-                item.attrib['description'] = name
-                item.attrib['type'] = feed_type
-                item.attrib['sortColumn'] = 'time'
-                item.attrib['xmlUrl'] = url
-                item.attrib['htmlUrl'] = html_url
-                item.attrib['updateInterval'] = update_interval
-                item.attrib['markAsRead'] = str(mark_as_read).lower()
-                item.attrib['collapsed'] = 'true'
+                item = self.create_element(node_id, name, feed_type, url, html_url, update_interval, mark_as_read)
                 outline.insert(position, item)
                 break
             position += 1
@@ -116,22 +105,28 @@ class ConfigAdapter():
             position = 1
             for source in outline.findall('./'):
                 if source.attrib['type'] in ['rss', 'atom'] and source.attrib['id'] == sibling_node_id:
-                    item = xml.Element('outline')
-                    item.attrib['id'] = node_id
-                    item.attrib['title'] = name
-                    item.attrib['text'] = name
-                    item.attrib['description'] = name
-                    item.attrib['type'] = feed_type
-                    item.attrib['sortColumn'] = 'time'
-                    item.attrib['xmlUrl'] = url
-                    item.attrib['htmlUrl'] = html_url
-                    item.attrib['updateInterval'] = update_interval
-                    item.attrib['markAsRead'] = str(mark_as_read).lower()
-                    item.attrib['collapsed'] = 'true'
+                    item = self.create_element(node_id, name, feed_type, url, html_url, update_interval, mark_as_read)
                     outline.insert(position, item)
                     broken = True
                     break
                 position += 1
 
         tree.write(os.path.expanduser(config.CONFIG_PATH), xml_declaration=True)
+
+    def create_element(self, node_id, name, feed_type, url, html_url, update_interval, mark_as_read):
+        item = xml.Element('outline')
+
+        item.attrib['id'] = node_id
+        item.attrib['title'] = name
+        item.attrib['text'] = name
+        item.attrib['description'] = name
+        item.attrib['type'] = feed_type
+        item.attrib['sortColumn'] = 'time'
+        item.attrib['xmlUrl'] = url
+        item.attrib['htmlUrl'] = html_url
+        item.attrib['updateInterval'] = update_interval
+        item.attrib['markAsRead'] = str(mark_as_read).lower()
+        item.attrib['collapsed'] = 'true'
+
+        return item
 
