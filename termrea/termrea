@@ -330,7 +330,7 @@ def edit_source(node_id):
         return
 
     db = DatabaseAdapter()
-    node = next(db.get_node(node_id))
+    node = next(db.get_node_subscriptions(node_id))
     config_node = config_adapter.get_source(node_id)
     mark_as_read = False if config_node['mark_as_read'] == 'false' else True
 
@@ -441,14 +441,23 @@ def delete_source(node_id):
     body = urwid.LineBox(body_padding)
 
     # footer
-    def delete(button, node_id):
+    def delete(button, node):
         global sources
 
         db = DatabaseAdapter()
-        db.delete_node(node_id)
-        db.close_connection()
 
-        config_adapter.delete_source(node_id)
+        node_ids = []
+        if node['type'] == 'folder':
+            folder_nodes = db.get_nodes_by_parent(node['node_id'])
+            for folder_node in folder_nodes:
+                node_ids.append(folder_node['node_id'])
+        node_ids.append(node['node_id'])
+
+        for node_id in node_ids:
+            db.delete_node(node_id)
+            config_adapter.delete_source(node_id)
+
+        db.close_connection()
 
         sources = config_adapter.get_sources()
         set_focused_item()
@@ -459,7 +468,7 @@ def delete_source(node_id):
         loop.widget = body
 
     button_yes = urwid.Button('Yes')
-    urwid.connect_signal(button_yes, 'click', delete, node_id)
+    urwid.connect_signal(button_yes, 'click', delete, node)
     button_no = urwid.Button('No', close)
     footer = urwid.GridFlow([button_yes, button_no], 7, 1, 1, 'center')
 

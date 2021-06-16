@@ -75,7 +75,8 @@ class ConfigAdapter():
 
         for outline in root.findall('./body/'):
             if outline.attrib['id'] == node_id:
-                root.remove(outline)
+                body = root.find('body')
+                body.remove(outline)
                 break
 
             for source in outline.findall('./'):

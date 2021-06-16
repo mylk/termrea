@@ -145,6 +145,22 @@ class DatabaseAdapter():
         connection.commit()
         self.close_connection()
 
+    def get_node_subscriptions(self, node_id):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        return cursor.execute('''
+            SELECT n.node_id,
+            n.parent_id,
+            n.title,
+            n.type,
+            s.source,
+            s.update_interval
+            FROM node n
+            INNER JOIN subscription s ON n.node_id = s.node_id
+            AND n.node_id = ?
+        ''', (node_id,))
+
     def get_node(self, node_id):
         connection = self.get_connection()
         cursor = connection.cursor()
@@ -153,12 +169,23 @@ class DatabaseAdapter():
             SELECT n.node_id,
             n.parent_id,
             n.title,
-            s.source,
-            s.update_interval
+            n.type
             FROM node n
-            INNER JOIN subscription s ON n.node_id = s.node_id
-            AND n.node_id = ?
+            WHERE n.node_id = ?
         ''', (node_id,))
+
+    def get_nodes_by_parent(self, parent_id):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        return cursor.execute('''
+            SELECT n.node_id,
+            n.parent_id,
+            n.title,
+            n.type
+            FROM node n
+            WHERE n.parent_id = ?
+        ''', (parent_id,))
 
     def update_node(self, node_id, name, url, update_interval):
         connection = self.get_connection()
