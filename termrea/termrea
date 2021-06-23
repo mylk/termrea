@@ -12,6 +12,7 @@ import xml.etree.ElementTree as xml
 from adapters.config import ConfigAdapter
 from adapters.database import DatabaseAdapter
 import config
+import state
 from widgets.readbutton import ReadButton
 from widgets.sourcebutton import SourceButton
 from widgets.unreadbutton import UnreadButton
@@ -23,8 +24,8 @@ def generate_sources_list():
     db.close_connection()
 
     sources_list = urwid.SimpleListWalker([])
-    for source in sources:
-        button = SourceButton(sources[source]['title'])
+    for source in state.sources:
+        button = SourceButton(state.sources[source]['title'])
         urwid.connect_signal(button, 'click', source_chosen, source)
         urwid.connect_signal(button, 'click_unread', source_chosen_unread, source)
         urwid.connect_signal(button, 'read', mark_source_as_read, source)
@@ -33,14 +34,14 @@ def generate_sources_list():
         urwid.connect_signal(button, 'add', add_source, source)
         sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
-        for subsource in sources[source]['sources']:
+        for subsource in state.sources[source]['sources']:
             title_prefix = '  '
             for unread_item in unread_items:
                 if unread_item['source_id'] == subsource and unread_item['read'] == 0:
                     title_prefix = '· '
                     break
 
-            button = SourceButton(title_prefix + sources[source]['sources'][subsource]['title'])
+            button = SourceButton(title_prefix + state.sources[source]['sources'][subsource]['title'])
             urwid.connect_signal(button, 'click', source_chosen, subsource)
             urwid.connect_signal(button, 'click_unread', source_chosen_unread, subsource)
             urwid.connect_signal(button, 'read', mark_source_as_read, subsource)
@@ -80,7 +81,7 @@ def generate_news_list(rows):
 def generate_interface(loop, news_items):
     terminal_size = os.get_terminal_size()
 
-    unread_count = get_node_unread_count(selected_node_id)
+    unread_count = get_node_unread_count(state.selected_node_id)
     unread_count_txt = urwid.Text('Unread: {}'.format(unread_count))
     last_update_txt = urwid.Text('Updated: {}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), align='right')
     columns_info = urwid.Columns([(round(terminal_size.columns / 2), unread_count_txt), last_update_txt])
@@ -91,17 +92,17 @@ def generate_interface(loop, news_items):
     elements_list = urwid.ListBox(news_list)
     sources_list = urwid.ListBox(sources_list)
 
-    if list_with_focus == 'news_list':
+    if state.list_with_focus == 'news_list':
         selected_list = elements_list
     else:
         selected_list = sources_list
 
     if len(selected_list.body) == 0:
         pass
-    elif len(selected_list.body) > index_with_focus:
-        selected_list.set_focus(index_with_focus)
-    elif len(selected_list.body) == index_with_focus:
-        selected_list.set_focus((index_with_focus - 1))
+    elif len(selected_list.body) > state.index_with_focus:
+        selected_list.set_focus(state.index_with_focus)
+    elif len(selected_list.body) == state.index_with_focus:
+        selected_list.set_focus((state.index_with_focus - 1))
 
     columns_news = urwid.Columns([(28, sources_list), (1, urwid.SolidFill(' ')), ((terminal_size.columns - 29), elements_list)])
     columns_news.set_focus(selected_list)
@@ -109,7 +110,7 @@ def generate_interface(loop, news_items):
     pile = urwid.Pile([columns_info, urwid.Divider(), (terminal_size.lines - 2, columns_news)])
     widget = urwid.Filler(pile, valign='top')
 
-    loop.widget = widget
+    state.loop.widget = widget
 
 
 def mark_source_as_read(node_id):
@@ -124,37 +125,31 @@ def mark_source_as_read(node_id):
 
     db.close_connection()
 
-    rows = get_source_items(selected_node_id)
+    rows = get_source_items(state.selected_node_id)
 
-    generate_interface(loop, rows)
+    generate_interface(state.loop, rows)
 
 
 def source_chosen(node_id):
-    global selected_node_id
-    global selected_filter
-
-    selected_node_id = node_id
-    selected_filter = None
+    state.selected_filter = None
+    state.selected_node_id = node_id
 
     set_focused_item()
 
     rows = get_source_items(node_id)
 
-    generate_interface(loop, rows)
+    generate_interface(state.loop, rows)
 
 
 def source_chosen_unread(node_id):
-    global selected_node_id
-    global selected_filter
-
-    selected_node_id = node_id
-    selected_filter = 'unread'
+    state.selected_filter = 'unread'
+    state.selected_node_id = node_id
 
     set_focused_item()
 
     rows = get_source_items(node_id)
 
-    generate_interface(loop, rows)
+    generate_interface(state.loop, rows)
 
 
 def mark_item_as_read(item_id):
@@ -162,9 +157,9 @@ def mark_item_as_read(item_id):
 
     DatabaseAdapter().set_item_read(item_id)
 
-    rows = get_source_items(selected_node_id)
+    rows = get_source_items(state.selected_node_id)
 
-    generate_interface(loop, rows)
+    generate_interface(state.loop, rows)
 
 
 def mark_item_as_unread(item_id):
@@ -172,9 +167,9 @@ def mark_item_as_unread(item_id):
 
     DatabaseAdapter().set_item_unread(item_id)
 
-    rows = get_source_items(selected_node_id)
+    rows = get_source_items(state.selected_node_id)
 
-    generate_interface(loop, rows)
+    generate_interface(state.loop, rows)
 
 
 def item_chosen(row):
@@ -182,9 +177,9 @@ def item_chosen(row):
 
     DatabaseAdapter().set_item_read(row['item_id'])
 
-    rows = get_source_items(selected_node_id)
+    rows = get_source_items(state.selected_node_id)
 
-    generate_interface(loop, rows)
+    generate_interface(state.loop, rows)
 
     webbrowser.open_new_tab(row['url'])
 
@@ -197,8 +192,8 @@ def handle_input(key):
     elif key == 'f':
         set_focused_item()
 
-        rows = get_source_items(selected_node_id)
-        generate_interface(loop, rows)
+        rows = get_source_items(state.selected_node_id)
+        generate_interface(state.loop, rows)
     else:
         return
 
@@ -206,7 +201,7 @@ def handle_input(key):
 def schedule_and_generate_interface(loop = None, data = None):
     set_focused_item()
 
-    rows = get_source_items(selected_node_id)
+    rows = get_source_items(state.selected_node_id)
     generate_interface(loop, rows)
 
     loop.set_alarm_in(config.UPDATE_INTERVAL, schedule_and_generate_interface)
@@ -216,7 +211,7 @@ def get_source_items(node_id):
     db = DatabaseAdapter()
 
     if node_id and node_id != node_id_unreads:
-        if selected_filter == 'unread':
+        if state.selected_filter == 'unread':
             rows = db.get_node_unread_items(node_id).fetchall()
         else:
             rows = db.get_node_all_items(node_id).fetchall()
@@ -229,27 +224,24 @@ def get_source_items(node_id):
 
 
 def set_focused_item():
-    # retain the focused item after updating the list
-    global index_with_focus
-    global list_with_focus
-
     # if help overlay is being displayed, do nothing, the widget is the overlay now
-    if type(loop.widget) == urwid.Overlay:
+    if type(state.loop.widget) == urwid.Overlay:
         return
 
     # get from the main loop the news items list, sources list, focused item
-    columns = loop.widget.get_body()[2]
+    columns = state.loop.widget.get_body()[2]
     news_list = columns.widget_list[2].body
     sources_list = columns.widget_list[0].body
     item_with_focus = columns.get_focus_widgets()[1].base_widget if len(columns.get_focus_widgets()) > 1 else None
 
-    list_with_focus = 'news_list'
+    # retain the focused item after updating the list
+    state.list_with_focus = 'news_list'
     selected_list = news_list
     if type(item_with_focus) == SourceButton:
-        list_with_focus = 'sources_list'
+        state.list_with_focus = 'sources_list'
         selected_list = sources_list
 
-    index_with_focus = selected_list.get_focus()[1] if selected_list.get_focus()[1] else 0
+    state.index_with_focus = selected_list.get_focus()[1] if selected_list.get_focus()[1] else 0
 
 
 def get_node_unread_count(node_id):
@@ -266,9 +258,6 @@ def get_node_unread_count(node_id):
 
 
 def help():
-    global loop
-    global body
-
     # body
     body_text = urwid.Text('''
     The available controls:
@@ -291,11 +280,11 @@ def help():
         left=1,
         right=1
     )
-    body = urwid.LineBox(body_padding)
+    state.body = urwid.LineBox(body_padding)
 
     # footer
     def close(button):
-        loop.widget = body
+        state.loop.widget = state.body
 
     footer = urwid.Button('OK', close)
     footer = urwid.AttrWrap(footer, 'selectable', 'focus')
@@ -303,30 +292,25 @@ def help():
 
     # layout
     layout = urwid.Frame(
-        body,
+        state.body,
         footer=footer,
         focus_part='footer'
     )
 
-    body = loop.widget
+    state.body = state.loop.widget
     pile = urwid.Pile([layout])
     over = urwid.Overlay(
         pile,
-        body,
+        state.body,
         align='center',
         valign='middle',
         width=41,
         height=18
     )
 
-    loop.widget = over
-
-    return layout
+    state.loop.widget = over
 
 def edit_source(node_id):
-    global loop
-    global body
-
     if node_id == node_id_unreads:
         return
 
@@ -336,18 +320,16 @@ def edit_source(node_id):
     mark_as_read = False if config_node['mark_as_read'] == 'false' else True
 
     def save_source(button, node_id):
-        global sources
-
         db = DatabaseAdapter()
         db.update_node(node_id, name_edit.get_edit_text(), url_edit.get_edit_text(), update_interval_edit.get_edit_text())
         db.close_connection()
 
         config_adapter.update_source(node_id, name_edit.get_edit_text(), url_edit.get_edit_text(), update_interval_edit.get_edit_text(), mark_as_read_checkbox.get_state())
-        sources = config_adapter.get_sources()
+        state.sources = config_adapter.get_sources()
 
         set_focused_item()
-        rows = get_source_items(selected_node_id)
-        generate_interface(loop, rows)
+        rows = get_source_items(state.selected_node_id)
+        generate_interface(state.loop, rows)
 
     name_txt = urwid.Text(u'Name', align='right')
     name_edit = urwid.Edit(u'', edit_text=node['title'], wrap='clip')
@@ -381,11 +363,11 @@ def edit_source(node_id):
         left=1,
         right=1
     )
-    body = urwid.LineBox(body_padding)
+    state.body = urwid.LineBox(body_padding)
 
     # footer
     def close(button):
-        loop.widget = body
+        state.loop.widget = state.body
 
     submit_button = urwid.Button('Submit')
     urwid.connect_signal(submit_button, 'click', save_source, node_id)
@@ -395,32 +377,27 @@ def edit_source(node_id):
 
     # layout
     layout = urwid.Frame(
-        body,
+        state.body,
         footer=footer,
         focus_part='footer'
     )
 
-    body = loop.widget
+    state.body = state.loop.widget
     pile = urwid.Pile([layout])
     over = urwid.Overlay(
         pile,
-        body,
+        state.body,
         align='center',
         valign='middle',
         width=60,
         height=12
     )
 
-    loop.widget = over
+    state.loop.widget = over
 
     db.close_connection()
 
-    return layout
-
 def delete_source(node_id):
-    global loop
-    global body
-
     if node_id == node_id_unreads:
         return
 
@@ -439,12 +416,10 @@ def delete_source(node_id):
         left=1,
         right=1
     )
-    body = urwid.LineBox(body_padding)
+    state.body = urwid.LineBox(body_padding)
 
     # footer
     def delete(button, node):
-        global sources
-
         db = DatabaseAdapter()
 
         node_ids = []
@@ -460,13 +435,13 @@ def delete_source(node_id):
 
         db.close_connection()
 
-        sources = config_adapter.get_sources()
+        state.sources = config_adapter.get_sources()
         set_focused_item()
-        rows = get_source_items(selected_node_id)
-        generate_interface(loop, rows)
+        rows = get_source_items(state.selected_node_id)
+        generate_interface(state.loop, rows)
 
     def close(button):
-        loop.widget = body
+        state.loop.widget = state.body
 
     button_yes = urwid.Button('Yes')
     urwid.connect_signal(button_yes, 'click', delete, node)
@@ -475,30 +450,25 @@ def delete_source(node_id):
 
     # layout
     layout = urwid.Frame(
-        body,
+        state.body,
         footer=footer,
         focus_part='footer'
     )
 
-    body = loop.widget
+    state.body = state.loop.widget
     pile = urwid.Pile([layout])
     over = urwid.Overlay(
         pile,
-        body,
+        state.body,
         align='center',
         valign='middle',
         width=41,
         height=7
     )
 
-    loop.widget = over
-
-    return layout
+    state.loop.widget = over
 
 def add_source(sibling_node_id):
-    global loop
-    global body
-
     if sibling_node_id == node_id_unreads:
         return
 
@@ -511,8 +481,6 @@ def add_source(sibling_node_id):
     db.close_connection()
 
     def save_source(button):
-        global sources
-
         url = url_edit.get_edit_text()
         feed_type = detect_feed_type(url)
         link = get_link(url, feed_type)
@@ -522,11 +490,11 @@ def add_source(sibling_node_id):
         db.close_connection()
 
         config_adapter.add_source(sibling_node_id, new_node_id, name_edit.get_edit_text(), feed_type, url, link, update_interval_edit.get_edit_text(), mark_as_read_checkbox.get_state())
-        sources = config_adapter.get_sources()
+        state.sources = config_adapter.get_sources()
 
         set_focused_item()
-        rows = get_source_items(selected_node_id)
-        generate_interface(loop, rows)
+        rows = get_source_items(state.selected_node_id)
+        generate_interface(state.loop, rows)
 
     name_txt = urwid.Text(u'Name', align='right')
     name_edit = urwid.Edit(u'', wrap='clip')
@@ -560,11 +528,11 @@ def add_source(sibling_node_id):
         left=1,
         right=1
     )
-    body = urwid.LineBox(body_padding)
+    state.body = urwid.LineBox(body_padding)
 
     # footer
     def close(button):
-        loop.widget = body
+        state.loop.widget = state.body
 
     submit_button = urwid.Button('Submit')
     urwid.connect_signal(submit_button, 'click', save_source)
@@ -574,25 +542,23 @@ def add_source(sibling_node_id):
 
     # layout
     layout = urwid.Frame(
-        body,
+        state.body,
         footer=footer,
         focus_part='footer'
     )
 
-    body = loop.widget
+    state.body = state.loop.widget
     pile = urwid.Pile([layout])
     over = urwid.Overlay(
         pile,
-        body,
+        state.body,
         align='center',
         valign='middle',
         width=60,
         height=12
     )
 
-    loop.widget = over
-
-    return layout
+    state.loop.widget = over
 
 def generate_node_id():
     db = DatabaseAdapter()
@@ -632,27 +598,23 @@ def get_link(url, feed_type):
 
     return None
 
-body = None
-
 urwid.register_signal(UnreadButton, ['click', 'read'])
 urwid.register_signal(ReadButton, ['click', 'unread'])
 urwid.register_signal(SourceButton, ['click', 'click_unread', 'read', 'edit', 'delete', 'add'])
 
-index_with_focus = 0
-list_with_focus = 'news_list'
 node_id_unreads = next(DatabaseAdapter().get_unreads_node())['node_id']
-selected_node_id = node_id_unreads
-selected_filter = None
+
+state.selected_node_id = node_id_unreads
 
 config_adapter = ConfigAdapter()
-sources = config_adapter.get_sources()
+state.sources = config_adapter.get_sources()
 
 widget = urwid.Filler(urwid.Pile([]), valign='top')
-loop = urwid.MainLoop(widget, palette=[('reversed', 'standout', '')], unhandled_input=handle_input)
-loop.set_alarm_in(config.UPDATE_INTERVAL, schedule_and_generate_interface)
+state.loop = urwid.MainLoop(widget, palette=[('reversed', 'standout', '')], unhandled_input=handle_input)
+state.loop.set_alarm_in(config.UPDATE_INTERVAL, schedule_and_generate_interface)
 
 rows = get_source_items(node_id_unreads)
-generate_interface(loop, rows)
+generate_interface(state.loop, rows)
 
-loop.run()
+state.loop.run()
 
