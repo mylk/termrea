@@ -12,6 +12,7 @@ import xml.etree.ElementTree as xml
 from adapters.config import ConfigAdapter
 from adapters.database import DatabaseAdapter
 import config
+from forms import help
 import state
 from widgets.readbutton import ReadButton
 from widgets.sourcebutton import SourceButton
@@ -188,7 +189,7 @@ def handle_input(key):
     if key == 'q':
         raise urwid.ExitMainLoop()
     elif key == 'h':
-        help()
+        help.display()
     elif key == 'f':
         set_focused_item()
 
@@ -196,7 +197,6 @@ def handle_input(key):
         generate_interface(state.loop, rows)
     else:
         return
-
 
 def schedule_and_generate_interface(loop = None, data = None):
     set_focused_item()
@@ -255,60 +255,6 @@ def get_node_unread_count(node_id):
     db.close_connection()
 
     return rows[0]['unread_count']
-
-
-def help():
-    # body
-    body_text = urwid.Text('''
-    The available controls:
-
-    arrows  navigate
-    r       mark as read
-    u       mark as unread
-    enter   open on browser,
-            select source
-    space   show unread of source
-    f       fetch
-    a       add source
-    e       edit source
-    d       delete source
-    q       quit
-    ''', align='left')
-    body_filler = urwid.Filler(body_text, valign='top')
-    body_padding = urwid.Padding(
-        body_filler,
-        left=1,
-        right=1
-    )
-    state.body = urwid.LineBox(body_padding)
-
-    # footer
-    def close(button):
-        state.loop.widget = state.body
-
-    footer = urwid.Button('OK', close)
-    footer = urwid.AttrWrap(footer, 'selectable', 'focus')
-    footer = urwid.GridFlow([footer], 6, 1, 1, 'center')
-
-    # layout
-    layout = urwid.Frame(
-        state.body,
-        footer=footer,
-        focus_part='footer'
-    )
-
-    state.body = state.loop.widget
-    pile = urwid.Pile([layout])
-    over = urwid.Overlay(
-        pile,
-        state.body,
-        align='center',
-        valign='middle',
-        width=41,
-        height=18
-    )
-
-    state.loop.widget = over
 
 def edit_source(node_id):
     if node_id == node_id_unreads:
