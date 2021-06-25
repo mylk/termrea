@@ -1,12 +1,9 @@
-#!/usr/bin/env python
-
 from datetime import datetime
 import os
 import random
 import string
 import urllib.request
 import urwid
-import webbrowser
 import xml.etree.ElementTree as xml
 
 from adapters.config import ConfigAdapter
@@ -107,12 +104,12 @@ def generate_news_list(rows):
 
         if not row['read']:
             button = UnreadButton(button_text)
-            urwid.connect_signal(button, 'read', mark_item_as_read, row['item_id'])
+            urwid.connect_signal(button, 'read', UnreadButton.mark_as_read, row['item_id'])
         else:
             button = ReadButton(button_text)
-            urwid.connect_signal(button, 'unread', mark_item_as_unread, row['item_id'])
+            urwid.connect_signal(button, 'unread', ReadButton.mark_as_unread, row['item_id'])
 
-        urwid.connect_signal(button, 'click', item_chosen, row)
+        urwid.connect_signal(button, 'click', UnreadButton.select, row)
         news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
     return news_list
@@ -129,38 +126,6 @@ def get_node_unread_count(node_id):
     db.close_connection()
 
     return rows[0]['unread_count']
-
-
-def mark_item_as_read(item_id):
-    set_focused_item()
-
-    DatabaseAdapter().set_item_read(item_id)
-
-    rows = get_source_items(state.selected_node_id)
-
-    display(state.loop, rows)
-
-
-def mark_item_as_unread(item_id):
-    set_focused_item()
-
-    DatabaseAdapter().set_item_unread(item_id)
-
-    rows = get_source_items(state.selected_node_id)
-
-    display(state.loop, rows)
-
-
-def item_chosen(row):
-    set_focused_item()
-
-    DatabaseAdapter().set_item_read(row['item_id'])
-
-    rows = get_source_items(state.selected_node_id)
-
-    display(state.loop, rows)
-
-    webbrowser.open_new_tab(row['url'])
 
 
 def set_focused_item():

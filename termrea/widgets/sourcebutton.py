@@ -4,6 +4,7 @@ from adapters.database import DatabaseAdapter
 from forms import main
 import state
 
+
 class SourceButton(urwid.Button):
 
     def __init__(self, label, on_press=None, user_data=None):

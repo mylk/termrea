@@ -1,7 +1,13 @@
 import urwid
+import webbrowser
+
+from adapters.database import DatabaseAdapter
+from forms import main
+import state
 
 
 class UnreadButton(urwid.Button):
+
     button_left = urwid.Text('· ')
     button_right = urwid.Text('')
 
@@ -25,4 +31,24 @@ class UnreadButton(urwid.Button):
 
         if key == 'r':
             urwid.emit_signal(self, 'read')
+
+    def mark_as_read(item_id):
+        main.set_focused_item()
+
+        DatabaseAdapter().set_item_read(item_id)
+
+        rows = main.get_source_items(state.selected_node_id)
+
+        main.display(state.loop, rows)
+
+    def select(row):
+        main.set_focused_item()
+
+        DatabaseAdapter().set_item_read(row['item_id'])
+
+        rows = main.get_source_items(state.selected_node_id)
+
+        main.display(state.loop, rows)
+
+        webbrowser.open_new_tab(row['url'])
 
