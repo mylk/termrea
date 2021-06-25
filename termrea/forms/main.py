@@ -66,9 +66,9 @@ def generate_sources_list():
     sources_list = urwid.SimpleListWalker([])
     for source in state.sources:
         button = SourceButton(state.sources[source]['title'])
-        urwid.connect_signal(button, 'click', source_chosen, source)
-        urwid.connect_signal(button, 'click_unread', source_chosen_unread, source)
-        urwid.connect_signal(button, 'read', mark_source_as_read, source)
+        urwid.connect_signal(button, 'click', SourceButton.show_all, source)
+        urwid.connect_signal(button, 'click_unread', SourceButton.show_unread, source)
+        urwid.connect_signal(button, 'read', SourceButton.mark_as_read, source)
         urwid.connect_signal(button, 'edit', edit_source, source)
         urwid.connect_signal(button, 'delete', delete_source, source)
         urwid.connect_signal(button, 'add', add_source, source)
@@ -82,9 +82,9 @@ def generate_sources_list():
                     break
 
             button = SourceButton(title_prefix + state.sources[source]['sources'][subsource]['title'])
-            urwid.connect_signal(button, 'click', source_chosen, subsource)
-            urwid.connect_signal(button, 'click_unread', source_chosen_unread, subsource)
-            urwid.connect_signal(button, 'read', mark_source_as_read, subsource)
+            urwid.connect_signal(button, 'click', SourceButton.show_all, subsource)
+            urwid.connect_signal(button, 'click_unread', SourceButton.show_unread, subsource)
+            urwid.connect_signal(button, 'read', SourceButton.mark_as_read, subsource)
             urwid.connect_signal(button, 'edit', edit_source, subsource)
             urwid.connect_signal(button, 'delete', delete_source, subsource)
             urwid.connect_signal(button, 'add', add_source, subsource)
@@ -129,45 +129,6 @@ def get_node_unread_count(node_id):
     db.close_connection()
 
     return rows[0]['unread_count']
-
-
-def mark_source_as_read(node_id):
-    set_focused_item()
-
-    db = DatabaseAdapter()
-
-    if node_id == state.node_id_unreads:
-        db.set_unreads_read()
-    else:
-        db.set_source_read(node_id)
-
-    db.close_connection()
-
-    rows = get_source_items(state.selected_node_id)
-
-    display(state.loop, rows)
-
-
-def source_chosen(node_id):
-    state.selected_filter = None
-    state.selected_node_id = node_id
-
-    set_focused_item()
-
-    rows = get_source_items(node_id)
-
-    display(state.loop, rows)
-
-
-def source_chosen_unread(node_id):
-    state.selected_filter = 'unread'
-    state.selected_node_id = node_id
-
-    set_focused_item()
-
-    rows = get_source_items(node_id)
-
-    display(state.loop, rows)
 
 
 def mark_item_as_read(item_id):

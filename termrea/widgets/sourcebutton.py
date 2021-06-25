@@ -1,5 +1,8 @@
 import urwid
 
+from adapters.database import DatabaseAdapter
+from forms import main
+import state
 
 class SourceButton(urwid.Button):
 
@@ -28,4 +31,43 @@ class SourceButton(urwid.Button):
 
         if key == 'a':
             urwid.emit_signal(self, 'add')
+
+    @staticmethod
+    def mark_as_read(node_id):
+        main.set_focused_item()
+
+        db = DatabaseAdapter()
+
+        if node_id == state.node_id_unreads:
+            db.set_unreads_read()
+        else:
+            db.set_source_read(node_id)
+
+        db.close_connection()
+
+        rows = main.get_source_items(state.selected_node_id)
+
+        main.display(state.loop, rows)
+
+    @staticmethod
+    def show_all(node_id):
+        state.selected_filter = None
+        state.selected_node_id = node_id
+
+        main.set_focused_item()
+
+        rows = main.get_source_items(node_id)
+
+        main.display(state.loop, rows)
+
+    @staticmethod
+    def show_unread(node_id):
+        state.selected_filter = 'unread'
+        state.selected_node_id = node_id
+
+        main.set_focused_item()
+
+        rows = main.get_source_items(node_id)
+
+        main.display(state.loop, rows)
 
