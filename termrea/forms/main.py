@@ -144,19 +144,3 @@ def set_focused_item():
 
     state.index_with_focus = selected_list.get_focus()[1] if selected_list.get_focus()[1] else 0
 
-
-def get_source_items(node_id):
-    db = DatabaseAdapter()
-
-    if node_id and node_id != state.node_id_unreads:
-        if state.selected_filter == 'unread':
-            rows = db.get_node_unread_items(node_id).fetchall()
-        else:
-            rows = db.get_node_all_items(node_id).fetchall()
-    else:
-        rows = db.find_unread_news().fetchall()
-
-    db.close_connection()
-
-    return rows
-

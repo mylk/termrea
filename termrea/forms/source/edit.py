@@ -97,7 +97,7 @@ def save(node_id, name_edit, url_edit, update_interval_edit, mark_as_read_checkb
     state.sources = config_adapter.get_sources()
 
     set_focused_item()
-    rows = get_source_items(state.selected_node_id)
+    rows = db.get_source_items(state.selected_node_id)
     main.display(state.loop, rows)
 
 
@@ -124,20 +124,4 @@ def set_focused_item():
         selected_list = sources_list
 
     state.index_with_focus = selected_list.get_focus()[1] if selected_list.get_focus()[1] else 0
-
-
-def get_source_items(node_id):
-    db = DatabaseAdapter()
-
-    if node_id and node_id != state.node_id_unreads:
-        if state.selected_filter == 'unread':
-            rows = db.get_node_unread_items(node_id).fetchall()
-        else:
-            rows = db.get_node_all_items(node_id).fetchall()
-    else:
-        rows = db.find_unread_news().fetchall()
-
-    db.close_connection()
-
-    return rows
 

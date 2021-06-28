@@ -2,6 +2,8 @@ import config
 import os
 import sqlite3
 
+import state
+
 
 class DatabaseAdapter():
     connection = None
@@ -93,6 +95,19 @@ class DatabaseAdapter():
 
     def get_node_unread_items(self, node_id):
         return self.get_node_items(node_id=node_id, unread_only=True, date_order='ASC')
+
+    def get_source_items(self, node_id):
+        if node_id and node_id != state.node_id_unreads:
+            if state.selected_filter == 'unread':
+                rows = self.get_node_unread_items(node_id).fetchall()
+            else:
+                rows = self.get_node_all_items(node_id).fetchall()
+        else:
+            rows = self.find_unread_news().fetchall()
+
+        self.close_connection()
+
+        return rows
 
     def get_unreads_node(self):
         connection = self.get_connection()

@@ -46,29 +46,33 @@ class SourceButton(urwid.Button):
 
         db.close_connection()
 
-        rows = main.get_source_items(state.selected_node_id)
+        rows = db.get_source_items(state.selected_node_id)
 
         main.display(state.loop, rows)
 
     @staticmethod
     def show_all(node_id):
+        db = DatabaseAdapter()
+
         state.selected_filter = None
         state.selected_node_id = node_id
 
         main.set_focused_item()
 
-        rows = main.get_source_items(node_id)
+        rows = db.get_source_items(node_id)
 
         main.display(state.loop, rows)
 
     @staticmethod
     def show_unread(node_id):
+        db = DatabaseAdapter()
+
         state.selected_filter = 'unread'
         state.selected_node_id = node_id
 
         main.set_focused_item()
 
-        rows = main.get_source_items(node_id)
+        rows = db.get_source_items(node_id)
 
         main.display(state.loop, rows)
 

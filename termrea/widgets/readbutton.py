@@ -33,20 +33,24 @@ class ReadButton(urwid.Button):
             urwid.emit_signal(self, 'unread')
 
     def mark_as_unread(item_id):
+        db = DatabaseAdapter()
+
         main.set_focused_item()
 
-        DatabaseAdapter().set_item_unread(item_id)
+        db.set_item_unread(item_id)
 
-        rows = main.get_source_items(state.selected_node_id)
+        rows = db.get_source_items(state.selected_node_id)
 
         main.display(state.loop, rows)
 
     def select(row):
+        db = DatabaseAdapter()
+
         main.set_focused_item()
 
-        DatabaseAdapter().set_item_read(row['item_id'])
+        db.set_item_read(row['item_id'])
 
-        rows = main.get_source_items(state.selected_node_id)
+        rows = db.get_source_items(state.selected_node_id)
 
         main.display(state.loop, rows)
 
