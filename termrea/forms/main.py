@@ -60,12 +60,12 @@ def generate_sources_list():
     sources_list = urwid.SimpleListWalker([])
     for source in state.sources:
         button = SourceButton(state.sources[source]['title'])
-        urwid.connect_signal(button, 'click', SourceButton.show_all, source)
-        urwid.connect_signal(button, 'click_unread', SourceButton.show_unread, source)
-        urwid.connect_signal(button, 'read', SourceButton.mark_as_read, source)
-        urwid.connect_signal(button, 'add', add.display, source)
-        urwid.connect_signal(button, 'delete', delete.display, source)
-        urwid.connect_signal(button, 'edit', edit.display, source)
+        urwid.connect_signal(button, 'click', SourceButton.show_all, user_args=[source])
+        urwid.connect_signal(button, 'click_unread', SourceButton.show_unread, user_args=[source])
+        urwid.connect_signal(button, 'read', SourceButton.mark_as_read, user_args=[source])
+        urwid.connect_signal(button, 'add', add.display, user_args=[source])
+        urwid.connect_signal(button, 'delete', delete.display, user_args=[source])
+        urwid.connect_signal(button, 'edit', edit.display, user_args=[source])
         sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
         for subsource in state.sources[source]['sources']:
@@ -76,12 +76,12 @@ def generate_sources_list():
                     break
 
             button = SourceButton(title_prefix + state.sources[source]['sources'][subsource]['title'])
-            urwid.connect_signal(button, 'click', SourceButton.show_all, subsource)
-            urwid.connect_signal(button, 'click_unread', SourceButton.show_unread, subsource)
-            urwid.connect_signal(button, 'read', SourceButton.mark_as_read, subsource)
-            urwid.connect_signal(button, 'add', add.display, subsource)
-            urwid.connect_signal(button, 'delete', delete.display, subsource)
-            urwid.connect_signal(button, 'edit', edit.display, subsource)
+            urwid.connect_signal(button, 'click', SourceButton.show_all, user_args=[subsource])
+            urwid.connect_signal(button, 'click_unread', SourceButton.show_unread, user_args=[subsource])
+            urwid.connect_signal(button, 'read', SourceButton.mark_as_read, user_args=[subsource])
+            urwid.connect_signal(button, 'add', add.display, user_args=[subsource])
+            urwid.connect_signal(button, 'delete', delete.display, user_args=[subsource])
+            urwid.connect_signal(button, 'edit', edit.display, user_args=[subsource])
             sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
     return sources_list
@@ -101,12 +101,12 @@ def generate_news_list(rows):
 
         if not row['read']:
             button = UnreadButton(button_text)
-            urwid.connect_signal(button, 'read', UnreadButton.mark_as_read, row['item_id'])
+            urwid.connect_signal(button, 'read', UnreadButton.mark_as_read, user_args=[row['item_id']])
         else:
             button = ReadButton(button_text)
-            urwid.connect_signal(button, 'unread', ReadButton.mark_as_unread, row['item_id'])
+            urwid.connect_signal(button, 'unread', ReadButton.mark_as_unread, user_args=[row['item_id']])
 
-        urwid.connect_signal(button, 'click', UnreadButton.select, row)
+        urwid.connect_signal(button, 'click', UnreadButton.select, user_args=[row])
         news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
     return news_list
