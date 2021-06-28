@@ -46,7 +46,7 @@ class SourceButton(urwid.Button):
 
         db.close_connection()
 
-        rows = db.get_source_items(state.selected_node_id)
+        rows = db.get_source_items(state.selected_node_id, state.node_id_unreads, state.selected_filter)
 
         main.display(state.loop, rows)
 
@@ -59,7 +59,7 @@ class SourceButton(urwid.Button):
 
         main.set_focused_item()
 
-        rows = db.get_source_items(node_id)
+        rows = db.get_source_items(node_id, state.node_id_unreads, state.selected_filter)
 
         main.display(state.loop, rows)
 
@@ -72,7 +72,7 @@ class SourceButton(urwid.Button):
 
         main.set_focused_item()
 
-        rows = db.get_source_items(node_id)
+        rows = db.get_source_items(node_id, state.node_id_unreads, state.selected_filter)
 
         main.display(state.loop, rows)
 

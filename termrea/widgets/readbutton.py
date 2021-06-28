@@ -39,7 +39,7 @@ class ReadButton(urwid.Button):
 
         db.set_item_unread(item_id)
 
-        rows = db.get_source_items(state.selected_node_id)
+        rows = db.get_source_items(state.selected_node_id, state.node_id_unreads, state.selected_filter)
 
         main.display(state.loop, rows)
 
@@ -50,7 +50,7 @@ class ReadButton(urwid.Button):
 
         db.set_item_read(row['item_id'])
 
-        rows = db.get_source_items(state.selected_node_id)
+        rows = db.get_source_items(state.selected_node_id, state.node_id_unreads, state.selected_filter)
 
         main.display(state.loop, rows)
 
