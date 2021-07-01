@@ -96,32 +96,11 @@ def save(node_id, name_edit, url_edit, update_interval_edit, mark_as_read_checkb
     config_adapter.update_source(node_id, name_edit.get_edit_text(), url_edit.get_edit_text(), update_interval_edit.get_edit_text(), mark_as_read_checkbox.get_state())
     state.sources = config_adapter.get_sources()
 
-    set_focused_item()
+    main.set_focused_item()
     rows = db.get_source_items(state.selected_node_id, state.node_id_unreads, state.selected_filter)
     main.display(state.loop, rows)
 
 
 def close(button):
     state.loop.widget = state.body
-
-
-def set_focused_item():
-    # if help overlay is being displayed, do nothing, the widget is the overlay now
-    if type(state.loop.widget) == urwid.Overlay:
-        return
-
-    # get from the main loop the news items list, sources list, focused item
-    columns = state.loop.widget.get_body()[2]
-    news_list = columns.widget_list[2].body
-    sources_list = columns.widget_list[0].body
-    item_with_focus = columns.get_focus_widgets()[1].base_widget if len(columns.get_focus_widgets()) > 1 else None
-
-    # retain the focused item after updating the list
-    state.list_with_focus = 'news_list'
-    selected_list = news_list
-    if type(item_with_focus) == SourceButton:
-        state.list_with_focus = 'sources_list'
-        selected_list = sources_list
-
-    state.index_with_focus = selected_list.get_focus()[1] if selected_list.get_focus()[1] else 0
 
