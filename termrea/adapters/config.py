@@ -43,7 +43,7 @@ class ConfigAdapter():
 
         return None
 
-    def update_source(self, node_id, name, url, update_interval, mark_as_read):
+    def update_source(self, node_id, name, feed_type, url, html_url, update_interval, mark_as_read):
         tree = xml.parse(os.path.expanduser(config.CONFIG_PATH))
         root = tree.getroot()
 
@@ -51,20 +51,28 @@ class ConfigAdapter():
             if outline.attrib['id'] == node_id:
                 outline.set('title', name)
                 outline.set('text', name)
+                outline.set('description', name)
+                outline.set('type', feed_type)
+                outline.set('sortColumn', 'time')
                 outline.set('xmlUrl', url)
-                outline.set('htmlUrl', url)
+                outline.set('htmlUrl', html_url)
                 outline.set('updateInterval', update_interval)
                 outline.set('markAsRead', str(mark_as_read).lower())
+                outline.set('collapsed', 'true')
                 break
 
             for source in outline.findall('./'):
                 if source.attrib['type'] in ['rss', 'atom'] and source.attrib['id'] == node_id:
                     source.set('title', name)
                     source.set('text', name)
+                    source.set('description', name)
+                    source.set('type', feed_type)
+                    source.set('sortColumn', 'time')
                     source.set('xmlUrl', url)
-                    source.set('htmlUrl', url)
+                    source.set('htmlUrl', html_url)
                     source.set('updateInterval', update_interval)
                     source.set('markAsRead', str(mark_as_read).lower())
+                    source.set('collapsed', 'true')
                     break
 
         tree.write(os.path.expanduser(config.CONFIG_PATH), xml_declaration=True, encoding='utf-8')

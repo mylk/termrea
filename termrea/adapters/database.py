@@ -200,22 +200,24 @@ class DatabaseAdapter():
             WHERE n.parent_id = ?
         ''', (parent_id,))
 
-    def update_node(self, node_id, name, url, update_interval):
+    def update_node(self, node_id, name, feed_type, url, update_interval):
         connection = self.get_connection()
         cursor = connection.cursor()
 
         cursor.execute('''
             UPDATE node
-            SET title = ?
+            SET title = ?,
+            type = ?
             WHERE node_id = ?
-        ''', (name, node_id))
+        ''', (name, feed_type, node_id))
 
         cursor.execute('''
             UPDATE subscription
             SET source = ?,
+            orig_source = ?,
             update_interval = ?
             WHERE node_id = ?
-        ''', (url, update_interval, node_id))
+        ''', (url, url, update_interval, node_id))
 
         connection.commit()
         self.close_connection()

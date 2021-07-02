@@ -1,14 +1,10 @@
-import random
-import string
-import urllib.request
 import urwid
-import xml.etree.ElementTree as xml
 
 from adapters.config import ConfigAdapter
 from adapters.database import DatabaseAdapter
 from forms import main
+from services import source as sourceservice
 import state
-from widgets.sourcebutton import SourceButton
 
 
 def display(node_id):
@@ -87,13 +83,17 @@ def display(node_id):
 
 
 def save(node_id, name_edit, url_edit, update_interval_edit, mark_as_read_checkbox, button):
+    url = url_edit.get_edit_text()
+    feed_type = sourceservice.detect_feed_type(url)
+    link = sourceservice.get_link(url, feed_type)
+
     config_adapter = ConfigAdapter()
     db = DatabaseAdapter()
 
-    db.update_node(node_id, name_edit.get_edit_text(), url_edit.get_edit_text(), update_interval_edit.get_edit_text())
+    db.update_node(node_id, name_edit.get_edit_text(), feed_type, url, update_interval_edit.get_edit_text())
     db.close_connection()
 
-    config_adapter.update_source(node_id, name_edit.get_edit_text(), url_edit.get_edit_text(), update_interval_edit.get_edit_text(), mark_as_read_checkbox.get_state())
+    config_adapter.update_source(node_id, name_edit.get_edit_text(), feed_type, url, link, update_interval_edit.get_edit_text(), mark_as_read_checkbox.get_state())
     state.sources = config_adapter.get_sources()
 
     main.set_focused_item()

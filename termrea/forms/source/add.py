@@ -1,14 +1,10 @@
-import random
-import string
-import urllib.request
 import urwid
-import xml.etree.ElementTree as xml
 
 from adapters.config import ConfigAdapter
 from adapters.database import DatabaseAdapter
 from forms import main
+from services import source as sourceservice
 import state
-from widgets.sourcebutton import SourceButton
 
 
 def display(sibling_node_id):
@@ -79,15 +75,15 @@ def display(sibling_node_id):
 
 def save(sibling_node_id, name_edit, url_edit, update_interval_edit, mark_as_read_checkbox, button):
     url = url_edit.get_edit_text()
-    feed_type = detect_feed_type(url)
-    link = get_link(url, feed_type)
+    feed_type = sourceservice.detect_feed_type(url)
+    link = sourceservice.get_link(url, feed_type)
 
     config_adapter = ConfigAdapter()
     db = DatabaseAdapter()
 
     sibling_node = next(db.get_node(sibling_node_id))
     config_node = config_adapter.get_source(sibling_node_id)
-    new_node_id = generate_node_id()
+    new_node_id = sourceservice.generate_node_id()
     parent_node_id = sibling_node['parent_id']
 
     new_node = db.add_source(new_node_id, parent_node_id, name_edit.get_edit_text(), feed_type, url, update_interval_edit.get_edit_text())
@@ -103,45 +99,4 @@ def save(sibling_node_id, name_edit, url_edit, update_interval_edit, mark_as_rea
 
 def close(button):
     state.loop.widget = state.body
-
-
-def generate_node_id():
-    db = DatabaseAdapter()
-
-    node = ''
-    while node is not None:
-        new_node_id = ''.join(random.choices(string.ascii_lowercase, k=7))
-        node = db.get_node(new_node_id).fetchone()
-
-    db.close_connection()
-
-    return new_node_id
-
-
-def detect_feed_type(url):
-    data = urllib.request.urlopen(url).read()
-    root = xml.fromstring(data)
-
-    source_type = 'atom'
-    if root.tag == 'rss':
-        source_type = 'rss'
-
-    return source_type
-
-
-def get_link(url, feed_type):
-    data = urllib.request.urlopen(url).read()
-    root = xml.fromstring(data)
-
-    if feed_type == 'rss':
-        link = root.find('./channel/link')
-
-        return link.text
-    elif feed_type == 'atom':
-        links = root.findall('{http://www.w3.org/2005/Atom}link')
-        for link in links:
-            if not 'rel' in link.attrib or link.attrib['rel'] != 'self':
-                return link.attrib['href']
-
-    return None
 
