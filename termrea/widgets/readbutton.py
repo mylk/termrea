@@ -27,7 +27,7 @@ class ReadButton(urwid.Button):
             return super(urwid.Button, self).keypress(size, key)
 
         if key == 'enter':
-            urwid.emit_signal(self, 'click')
+            urwid.emit_signal(self, 'select')
 
         if key == 'u':
             urwid.emit_signal(self, 'unread')

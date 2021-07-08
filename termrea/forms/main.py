@@ -12,8 +12,8 @@ from widgets.sourcebutton import SourceButton
 from widgets.unreadbutton import UnreadButton
 
 
-urwid.register_signal(UnreadButton, ['click', 'read'])
-urwid.register_signal(ReadButton, ['click', 'unread'])
+urwid.register_signal(UnreadButton, ['select', 'read'])
+urwid.register_signal(ReadButton, ['select', 'unread'])
 urwid.register_signal(SourceButton, ['click', 'click_unread', 'read', 'edit', 'delete', 'add'])
 
 
@@ -106,7 +106,7 @@ def generate_news_list(rows):
             button = ReadButton(button_text)
             urwid.connect_signal(button, 'unread', ReadButton.mark_as_unread, user_args=[row['item_id']])
 
-        urwid.connect_signal(button, 'click', UnreadButton.select, user_args=[row])
+        urwid.connect_signal(button, 'select', UnreadButton.select, user_args=[row])
         news_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
     return news_list
