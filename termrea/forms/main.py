@@ -14,7 +14,7 @@ from widgets.unreadbutton import UnreadButton
 
 urwid.register_signal(UnreadButton, ['select', 'read'])
 urwid.register_signal(ReadButton, ['select', 'unread'])
-urwid.register_signal(SourceButton, ['click', 'click_unread', 'read', 'edit', 'delete', 'add'])
+urwid.register_signal(SourceButton, ['select', 'select_unread', 'read', 'edit', 'delete', 'add'])
 
 
 def display(loop, news_items):
@@ -60,8 +60,8 @@ def generate_sources_list():
     sources_list = urwid.SimpleListWalker([])
     for source in state.sources:
         button = SourceButton(state.sources[source]['title'])
-        urwid.connect_signal(button, 'click', SourceButton.show_all, user_args=[source])
-        urwid.connect_signal(button, 'click_unread', SourceButton.show_unread, user_args=[source])
+        urwid.connect_signal(button, 'select', SourceButton.show_all, user_args=[source])
+        urwid.connect_signal(button, 'select_unread', SourceButton.show_unread, user_args=[source])
         urwid.connect_signal(button, 'read', SourceButton.mark_as_read, user_args=[source])
         urwid.connect_signal(button, 'add', add.display, user_args=[source])
         urwid.connect_signal(button, 'delete', delete.display, user_args=[source])
@@ -76,8 +76,8 @@ def generate_sources_list():
                     break
 
             button = SourceButton(title_prefix + state.sources[source]['sources'][subsource]['title'])
-            urwid.connect_signal(button, 'click', SourceButton.show_all, user_args=[subsource])
-            urwid.connect_signal(button, 'click_unread', SourceButton.show_unread, user_args=[subsource])
+            urwid.connect_signal(button, 'select', SourceButton.show_all, user_args=[subsource])
+            urwid.connect_signal(button, 'select_unread', SourceButton.show_unread, user_args=[subsource])
             urwid.connect_signal(button, 'read', SourceButton.mark_as_read, user_args=[subsource])
             urwid.connect_signal(button, 'add', add.display, user_args=[subsource])
             urwid.connect_signal(button, 'delete', delete.display, user_args=[subsource])
