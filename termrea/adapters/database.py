@@ -44,7 +44,7 @@ class DatabaseAdapter():
         ''')
 
 
-    def get_node_unread_count(self, node_id):
+    def get_source_unread_count(self, node_id):
         connection = self.get_connection()
         cursor = connection.cursor()
 
@@ -60,7 +60,7 @@ class DatabaseAdapter():
             )
         ''', (node_id, node_id))
 
-    def get_node_items(self, node_id=None, unread_only=False, date_order='DESC'):
+    def get_source_items(self, node_id=None, unread_only=False, date_order='DESC'):
         connection = self.get_connection()
         cursor = connection.cursor()
 
@@ -88,18 +88,18 @@ class DatabaseAdapter():
 
         return cursor.execute(query, (node_id, node_id))
 
-    def get_node_all_items(self, node_id):
-        return self.get_node_items(node_id=node_id, unread_only=False, date_order='DESC')
+    def get_source_all_items(self, node_id):
+        return self.get_source_items(node_id=node_id, unread_only=False, date_order='DESC')
 
-    def get_node_unread_items(self, node_id):
-        return self.get_node_items(node_id=node_id, unread_only=True, date_order='ASC')
+    def get_source_unread_items(self, node_id):
+        return self.get_source_items(node_id=node_id, unread_only=True, date_order='ASC')
 
     def get_source_items(self, node_id, node_id_unreads, selected_filter):
         if node_id and node_id != node_id_unreads:
             if selected_filter == 'unread':
-                rows = self.get_node_unread_items(node_id).fetchall()
+                rows = self.get_source_unread_items(node_id).fetchall()
             else:
-                rows = self.get_node_all_items(node_id).fetchall()
+                rows = self.get_source_all_items(node_id).fetchall()
         else:
             rows = self.find_unread_news().fetchall()
 
@@ -107,7 +107,7 @@ class DatabaseAdapter():
 
         return rows
 
-    def get_unreads_node(self):
+    def get_unreads_source(self):
         connection = self.get_connection()
         cursor = connection.cursor()
 
@@ -158,7 +158,7 @@ class DatabaseAdapter():
         connection.commit()
         self.close_connection()
 
-    def get_node_subscriptions(self, node_id):
+    def get_source_subscriptions(self, node_id):
         connection = self.get_connection()
         cursor = connection.cursor()
 
@@ -174,7 +174,7 @@ class DatabaseAdapter():
             AND n.node_id = ?
         ''', (node_id,))
 
-    def get_node(self, node_id):
+    def get_source(self, node_id):
         connection = self.get_connection()
         cursor = connection.cursor()
 
@@ -187,7 +187,7 @@ class DatabaseAdapter():
             WHERE n.node_id = ?
         ''', (node_id,))
 
-    def get_nodes_by_parent(self, parent_id):
+    def get_sources_by_parent(self, parent_id):
         connection = self.get_connection()
         cursor = connection.cursor()
 
@@ -200,7 +200,7 @@ class DatabaseAdapter():
             WHERE n.parent_id = ?
         ''', (parent_id,))
 
-    def update_node(self, node_id, name, feed_type, url, update_interval):
+    def update_source(self, node_id, name, feed_type, url, update_interval):
         connection = self.get_connection()
         cursor = connection.cursor()
 
@@ -243,7 +243,7 @@ class DatabaseAdapter():
         connection.commit()
         self.close_connection()
 
-    def delete_node(self, node_id):
+    def delete_source(self, node_id):
         connection = self.get_connection()
         cursor = connection.cursor()
 

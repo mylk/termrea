@@ -16,7 +16,7 @@ def display(node_id):
         return
 
     db = DatabaseAdapter()
-    node = next(db.get_node(node_id))
+    node = next(db.get_source(node_id))
     db.close_connection()
 
     # body
@@ -65,13 +65,13 @@ def delete(node, button):
 
     node_ids = []
     if node['type'] == 'folder':
-        folder_nodes = db.get_nodes_by_parent(node['node_id'])
+        folder_nodes = db.get_sources_by_parent(node['node_id'])
         for folder_node in folder_nodes:
             node_ids.append(folder_node['node_id'])
     node_ids.append(node['node_id'])
 
     for node_id in node_ids:
-        db.delete_node(node_id)
+        db.delete_source(node_id)
         config_adapter.delete_source(node_id)
 
     db.close_connection()

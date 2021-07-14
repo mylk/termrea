@@ -81,7 +81,7 @@ def save(sibling_node_id, name_edit, url_edit, update_interval_edit, mark_as_rea
     config_adapter = ConfigAdapter()
     db = DatabaseAdapter()
 
-    sibling_node = next(db.get_node(sibling_node_id))
+    sibling_node = next(db.get_source(sibling_node_id))
     config_node = config_adapter.get_source(sibling_node_id)
     new_node_id = sourceservice.generate_node_id()
     parent_node_id = sibling_node['parent_id']

@@ -20,7 +20,7 @@ urwid.register_signal(SourceButton, ['select', 'select_unread', 'read', 'edit', 
 def display(loop, news_items):
     terminal_size = os.get_terminal_size()
 
-    unread_count = get_node_unread_count(state.selected_node_id)
+    unread_count = get_source_unread_count(state.selected_node_id)
     unread_count_txt = urwid.Text('Unread: {}'.format(unread_count))
     last_update_txt = urwid.Text('Updated: {}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), align='right')
     columns_info = urwid.Columns([(round(terminal_size.columns / 2), unread_count_txt), last_update_txt])
@@ -112,13 +112,13 @@ def generate_news_list(rows):
     return news_list
 
 
-def get_node_unread_count(node_id):
+def get_source_unread_count(node_id):
     db = DatabaseAdapter()
 
     if node_id and node_id == state.node_id_unreads:
         rows = db.get_unread_count().fetchall()
     else:
-        rows = db.get_node_unread_count(node_id).fetchall()
+        rows = db.get_source_unread_count(node_id).fetchall()
 
     db.close_connection()
 

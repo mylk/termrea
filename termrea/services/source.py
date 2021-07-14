@@ -12,7 +12,7 @@ def generate_node_id():
     node = ''
     while node is not None:
         new_node_id = ''.join(random.choices(string.ascii_lowercase, k=7))
-        node = db.get_node(new_node_id).fetchone()
+        node = db.get_source(new_node_id).fetchone()
 
     db.close_connection()
 

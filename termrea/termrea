@@ -34,7 +34,7 @@ def schedule_and_generate_interface(loop = None, data = None):
     loop.set_alarm_in(config.UPDATE_INTERVAL, schedule_and_generate_interface)
 
 
-state.node_id_unreads = next(DatabaseAdapter().get_unreads_node())['node_id']
+state.node_id_unreads = next(DatabaseAdapter().get_unreads_source())['node_id']
 state.selected_node_id = state.node_id_unreads
 
 db = DatabaseAdapter()

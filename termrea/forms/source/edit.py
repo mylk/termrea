@@ -14,7 +14,7 @@ def display(node_id):
     config_adapter = ConfigAdapter()
     db = DatabaseAdapter()
 
-    node = next(db.get_node_subscriptions(node_id))
+    node = next(db.get_source_subscriptions(node_id))
     config_node = config_adapter.get_source(node_id)
     mark_as_read = False if config_node['mark_as_read'] == 'false' else True
 
@@ -90,7 +90,7 @@ def save(node_id, name_edit, url_edit, update_interval_edit, mark_as_read_checkb
     config_adapter = ConfigAdapter()
     db = DatabaseAdapter()
 
-    db.update_node(node_id, name_edit.get_edit_text(), feed_type, url, update_interval_edit.get_edit_text())
+    db.update_source(node_id, name_edit.get_edit_text(), feed_type, url, update_interval_edit.get_edit_text())
     db.close_connection()
 
     config_adapter.update_source(node_id, name_edit.get_edit_text(), feed_type, url, link, update_interval_edit.get_edit_text(), mark_as_read_checkbox.get_state())
