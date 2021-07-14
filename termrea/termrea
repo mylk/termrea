@@ -34,12 +34,11 @@ def schedule_and_generate_interface(loop = None, data = None):
     loop.set_alarm_in(config.UPDATE_INTERVAL, schedule_and_generate_interface)
 
 
-state.node_id_unreads = next(DatabaseAdapter().get_unreads_source())['node_id']
-state.selected_node_id = state.node_id_unreads
-
 db = DatabaseAdapter()
 config_adapter = ConfigAdapter()
 state.sources = config_adapter.get_sources()
+state.node_id_unreads = next(db.get_unreads_source())['node_id']
+state.selected_node_id = state.node_id_unreads
 
 widget = urwid.Filler(urwid.Pile([]), valign='top')
 state.loop = urwid.MainLoop(widget, palette=[('reversed', 'standout', '')], unhandled_input=handle_input)
