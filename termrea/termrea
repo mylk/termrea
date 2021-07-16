@@ -19,7 +19,7 @@ def handle_input(key):
     elif key == 'f':
         main.set_focused_item()
 
-        rows = db.get_source_items(state.selected_node_id, state.node_id_unreads, state.selected_filter)
+        rows = db.get_source_items(state.selected_source_id, state.unread_source_id, state.selected_filter)
         main.display(state.loop, rows)
     else:
         return
@@ -28,7 +28,7 @@ def handle_input(key):
 def schedule_and_generate_interface(loop = None, data = None):
     main.set_focused_item()
 
-    rows = db.get_source_items(state.selected_node_id, state.node_id_unreads, state.selected_filter)
+    rows = db.get_source_items(state.selected_source_id, state.unread_source_id, state.selected_filter)
     main.display(loop, rows)
 
     loop.set_alarm_in(config.UPDATE_INTERVAL, schedule_and_generate_interface)
@@ -37,14 +37,14 @@ def schedule_and_generate_interface(loop = None, data = None):
 db = DatabaseAdapter()
 config_adapter = ConfigAdapter()
 state.sources = config_adapter.get_sources()
-state.node_id_unreads = next(db.get_unreads_source())['node_id']
-state.selected_node_id = state.node_id_unreads
+state.unread_source_id = next(db.get_unreads_source())['node_id']
+state.selected_source_id = state.unread_source_id
 
 widget = urwid.Filler(urwid.Pile([]), valign='top')
 state.loop = urwid.MainLoop(widget, palette=[('reversed', 'standout', '')], unhandled_input=handle_input)
 state.loop.set_alarm_in(config.UPDATE_INTERVAL, schedule_and_generate_interface)
 
-rows = db.get_source_items(state.node_id_unreads, state.node_id_unreads, state.selected_filter)
+rows = db.get_source_items(state.unread_source_id, state.unread_source_id, state.selected_filter)
 main.display(state.loop, rows)
 
 state.loop.run()

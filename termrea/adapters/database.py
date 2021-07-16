@@ -94,8 +94,8 @@ class DatabaseAdapter():
     def get_source_unread_items(self, node_id):
         return self.get_source_items(node_id=node_id, unread_only=True, date_order='ASC')
 
-    def get_source_items(self, node_id, node_id_unreads, selected_filter):
-        if node_id and node_id != node_id_unreads:
+    def get_source_items(self, node_id, unread_source_id, selected_filter):
+        if node_id and node_id != unread_source_id:
             if selected_filter == 'unread':
                 rows = self.get_source_unread_items(node_id).fetchall()
             else:

@@ -8,7 +8,7 @@ import state
 
 
 def display(node_id):
-    if node_id == state.node_id_unreads:
+    if node_id == state.unread_source_id:
         return
 
     config_adapter = ConfigAdapter()
@@ -97,7 +97,7 @@ def save(node_id, name_edit, url_edit, update_interval_edit, mark_as_read_checkb
     state.sources = config_adapter.get_sources()
 
     main.set_focused_item()
-    rows = db.get_source_items(state.selected_node_id, state.node_id_unreads, state.selected_filter)
+    rows = db.get_source_items(state.selected_source_id, state.unread_source_id, state.selected_filter)
     main.display(state.loop, rows)
 
 
