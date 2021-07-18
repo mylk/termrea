@@ -40,7 +40,7 @@ class SourceButton(urwid.Button):
         db = DatabaseAdapter()
 
         if node_id == state.unread_source_id:
-            db.set_unreads_read()
+            db.set_unread_read()
         else:
             db.set_source_read(node_id)
 

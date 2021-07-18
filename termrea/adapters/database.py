@@ -107,7 +107,7 @@ class DatabaseAdapter():
 
         return rows
 
-    def get_unreads_source(self):
+    def get_unread_source(self):
         connection = self.get_connection()
         cursor = connection.cursor()
 
@@ -151,7 +151,7 @@ class DatabaseAdapter():
         connection.commit()
         self.close_connection()
 
-    def set_unreads_read(self):
+    def set_unread_read(self):
         connection = self.get_connection()
         cursor = connection.cursor()
         cursor.execute('UPDATE items SET read = 1 WHERE read = 0')
