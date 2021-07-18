@@ -60,7 +60,7 @@ class DatabaseAdapter():
             )
         ''', (node_id, node_id))
 
-    def get_source_items(self, node_id=None, unread_only=False, date_order='DESC'):
+    def find_source_items(self, node_id=None, unread_only=False, date_order='DESC'):
         connection = self.get_connection()
         cursor = connection.cursor()
 
@@ -89,10 +89,10 @@ class DatabaseAdapter():
         return cursor.execute(query, (node_id, node_id))
 
     def get_source_all_items(self, node_id):
-        return self.get_source_items(node_id=node_id, unread_only=False, date_order='DESC')
+        return self.find_source_items(node_id=node_id, unread_only=False, date_order='DESC')
 
     def get_source_unread_items(self, node_id):
-        return self.get_source_items(node_id=node_id, unread_only=True, date_order='ASC')
+        return self.find_source_items(node_id=node_id, unread_only=True, date_order='ASC')
 
     def get_source_items(self, node_id, unread_source_id, selected_filter):
         if node_id and node_id != unread_source_id:
