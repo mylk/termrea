@@ -59,13 +59,7 @@ def generate_sources_list():
 
     sources_list = urwid.SimpleListWalker([])
     for source in state.sources:
-        button = SourceButton(state.sources[source]['title'])
-        urwid.connect_signal(button, 'select', SourceButton.show_all, user_args=[source])
-        urwid.connect_signal(button, 'select_unread', SourceButton.show_unread, user_args=[source])
-        urwid.connect_signal(button, 'read', SourceButton.mark_as_read, user_args=[source])
-        urwid.connect_signal(button, 'add', add.display, user_args=[source])
-        urwid.connect_signal(button, 'delete', delete.display, user_args=[source])
-        urwid.connect_signal(button, 'edit', edit.display, user_args=[source])
+        button = create_source_button(state.sources[source]['title'], source)
         sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
         for subsource in state.sources[source]['sources']:
@@ -75,13 +69,7 @@ def generate_sources_list():
                     title_prefix = '· '
                     break
 
-            button = SourceButton(title_prefix + state.sources[source]['sources'][subsource]['title'])
-            urwid.connect_signal(button, 'select', SourceButton.show_all, user_args=[subsource])
-            urwid.connect_signal(button, 'select_unread', SourceButton.show_unread, user_args=[subsource])
-            urwid.connect_signal(button, 'read', SourceButton.mark_as_read, user_args=[subsource])
-            urwid.connect_signal(button, 'add', add.display, user_args=[subsource])
-            urwid.connect_signal(button, 'delete', delete.display, user_args=[subsource])
-            urwid.connect_signal(button, 'edit', edit.display, user_args=[subsource])
+            button = create_source_button(title_prefix + state.sources[source]['sources'][subsource]['title'], subsource)
             sources_list.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
     return sources_list
@@ -124,6 +112,7 @@ def get_source_unread_count(node_id):
 
     return rows[0]['unread_count']
 
+
 def set_focused_item():
     # if help overlay is being displayed, do nothing, the widget is the overlay now
     if type(state.loop.widget) == urwid.Overlay:
@@ -143,4 +132,16 @@ def set_focused_item():
         selected_list = sources_list
 
     state.index_with_focus = selected_list.get_focus()[1] if selected_list.get_focus()[1] else 0
+
+
+def create_source_button(title, source_id):
+    button = SourceButton(title)
+    urwid.connect_signal(button, 'select', SourceButton.show_all, user_args=[source_id])
+    urwid.connect_signal(button, 'select_unread', SourceButton.show_unread, user_args=[source_id])
+    urwid.connect_signal(button, 'read', SourceButton.mark_as_read, user_args=[source_id])
+    urwid.connect_signal(button, 'add', add.display, user_args=[source_id])
+    urwid.connect_signal(button, 'delete', delete.display, user_args=[source_id])
+    urwid.connect_signal(button, 'edit', edit.display, user_args=[source_id])
+
+    return button
 
