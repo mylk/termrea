@@ -3,7 +3,7 @@ import os
 import xml.etree.ElementTree as xml
 
 
-class ConfigAdapter():
+class ConfigAdapter:
 
     def get_sources(self):
         tree = xml.parse(os.path.expanduser(config.CONFIG_PATH))
@@ -138,4 +138,3 @@ class ConfigAdapter():
         item.attrib['collapsed'] = 'true'
 
         return item
-

@@ -6,4 +6,3 @@ unread_source_id = None
 selected_filter = None
 selected_source_id = None
 sources = None
-

@@ -84,4 +84,3 @@ def delete(node, button):
 
 def close(button):
     state.loop.widget = state.body
-

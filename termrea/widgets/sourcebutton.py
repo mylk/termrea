@@ -75,4 +75,3 @@ class SourceButton(urwid.Button):
         rows = db.get_source_items(node_id, state.unread_source_id, state.selected_filter)
 
         main.display(state.loop, rows)
-

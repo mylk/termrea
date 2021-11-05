@@ -25,7 +25,7 @@ def handle_input(key):
         return
 
 
-def schedule_and_generate_interface(loop = None, data = None):
+def schedule_and_generate_interface(loop=None, data=None):
     main.set_focused_item()
 
     rows = db.get_source_items(state.selected_source_id, state.unread_source_id, state.selected_filter)
@@ -48,4 +48,3 @@ rows = db.get_source_items(state.unread_source_id, state.unread_source_id, state
 main.display(state.loop, rows)
 
 state.loop.run()
-

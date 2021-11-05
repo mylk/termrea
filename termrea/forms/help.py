@@ -56,4 +56,3 @@ def display():
 
 def close(button):
     state.loop.widget = state.body
-

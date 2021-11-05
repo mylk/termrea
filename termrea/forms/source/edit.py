@@ -103,4 +103,3 @@ def save(node_id, name_edit, url_edit, update_interval_edit, mark_as_read_checkb
 
 def close(button):
     state.loop.widget = state.body
-

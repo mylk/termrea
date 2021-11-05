@@ -3,7 +3,7 @@ import os
 import sqlite3
 
 
-class DatabaseAdapter():
+class DatabaseAdapter:
     connection = None
 
     def get_connection(self):
@@ -32,7 +32,6 @@ class DatabaseAdapter():
             ORDER BY date ASC
         ''')
 
-
     def get_unread_count(self):
         connection = self.get_connection()
         cursor = connection.cursor()
@@ -42,7 +41,6 @@ class DatabaseAdapter():
             FROM items AS i
             WHERE i.read = 0
         ''')
-
 
     def get_source_unread_count(self, node_id):
         connection = self.get_connection()
@@ -256,4 +254,3 @@ class DatabaseAdapter():
     def close_connection(self):
         self.get_connection().close()
         self.connection = None
-

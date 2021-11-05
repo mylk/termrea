@@ -55,4 +55,3 @@ class ReadButton(urwid.Button):
         main.display(state.loop, rows)
 
         webbrowser.open_new_tab(row['url'])
-

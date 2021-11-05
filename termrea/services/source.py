@@ -45,4 +45,3 @@ def get_link(url, feed_type):
                 return link.attrib['href']
 
     return None
-
