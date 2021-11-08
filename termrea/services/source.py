@@ -41,7 +41,7 @@ def get_link(url, feed_type):
     elif feed_type == 'atom':
         links = root.findall('{http://www.w3.org/2005/Atom}link')
         for link in links:
-            if not 'rel' in link.attrib or link.attrib['rel'] != 'self':
+            if 'rel' not in link.attrib or link.attrib['rel'] != 'self':
                 return link.attrib['href']
 
     return None
