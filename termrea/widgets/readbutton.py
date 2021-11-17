@@ -32,6 +32,7 @@ class ReadButton(urwid.Button):
         if key == 'u':
             urwid.emit_signal(self, 'unread')
 
+    @staticmethod
     def mark_as_unread(item_id):
         db = DatabaseAdapter()
 
@@ -43,6 +44,7 @@ class ReadButton(urwid.Button):
 
         main.display(state.loop, rows)
 
+    @staticmethod
     def select(row):
         db = DatabaseAdapter()
 
