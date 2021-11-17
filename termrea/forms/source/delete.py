@@ -1,14 +1,9 @@
-import random
-import string
-import urllib.request
 import urwid
-import xml.etree.ElementTree as xml
 
 from adapters.config import ConfigAdapter
 from adapters.database import DatabaseAdapter
 from forms import main
 import state
-from widgets.sourcebutton import SourceButton
 
 
 def display(node_id):

@@ -8,7 +8,6 @@ import config
 from forms import help
 from forms import main
 import state
-from widgets.sourcebutton import SourceButton
 
 
 def handle_input(key):
